@@ -165,7 +165,7 @@ function abc_sortperm(
     o = sortperm(abc)
     if close(abc[o[1]], abc[o[3]]) && close(abc[o[2]], abc[o[3]]) && close(abc[o[1]], abc[o[2]])
         a = sortperm(angles)
-        if close(angles[a[1]],angle[a[2]]) && close(angles[a[1]],angle[a[3]]) && close(angles[a[2]],angle[a[3]])
+        if close(angles[a[1]],angles[a[2]]) && close(angles[a[1]],angles[a[3]]) && close(angles[a[2]],angles[a[3]])
             return [1,2,3]
         elseif close(angles[a[1]],angles[a[2]])
             return a
