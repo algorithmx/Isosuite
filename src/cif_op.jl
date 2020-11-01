@@ -212,12 +212,12 @@ function swap_abc(
     αβγ_line_ids = Int64[il("cell_angle_alpha"), il("cell_angle_beta"), il("cell_angle_gamma")]
     abc0 = cif_lines[abc_line_ids]
     αβγ0 = cif_lines[αβγ_line_ids]
-    cif_lines[abc_line_ids[1]] = abc0[perm_abc[1]]
-    cif_lines[abc_line_ids[2]] = abc0[perm_abc[2]]
-    cif_lines[abc_line_ids[3]] = abc0[perm_abc[3]]
-    cif_lines[αβγ_line_ids[1]] = αβγ0[perm_angles[1]]
-    cif_lines[αβγ_line_ids[2]] = αβγ0[perm_angles[2]]
-    cif_lines[αβγ_line_ids[3]] = αβγ0[perm_angles[3]]
+    cif_lines[abc_line_ids[1]] = (@sprintf "_cell_length_a   %s" last(SPLTS(abc0[perm_abc[1]])))
+    cif_lines[abc_line_ids[2]] = (@sprintf "_cell_length_b   %s" last(SPLTS(abc0[perm_abc[2]])))
+    cif_lines[abc_line_ids[3]] = (@sprintf "_cell_length_c   %s" last(SPLTS(abc0[perm_abc[3]])))
+    cif_lines[αβγ_line_ids[1]] = (@sprintf "_cell_angle_alpha   %s" last(SPLTS(αβγ0[perm_angles[1]])))
+    cif_lines[αβγ_line_ids[2]] = (@sprintf "_cell_angle_beta    %s" last(SPLTS(αβγ0[perm_angles[2]])))
+    cif_lines[αβγ_line_ids[3]] = (@sprintf "_cell_angle_gamma   %s" last(SPLTS(αβγ0[perm_angles[3]])))
 
     pos = atom_config_pos(cif)
     atom_lines = cif_lines[pos:end]
