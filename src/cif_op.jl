@@ -159,8 +159,8 @@ function abc_sortperm(
     )::Vector{Int64}
 
     close(x,y) = abs(x-y) < tol
-    abc = (get_cell_length_a(cif), get_cell_length_b(cif), get_cell_length_c(cif))
-    angles = (get_cell_angle_alpha(cif), get_cell_angle_beta(cif) , get_cell_angle_gamma(cif))
+    abc = [get_cell_length_a(cif), get_cell_length_b(cif), get_cell_length_c(cif)]
+    angles = [get_cell_angle_alpha(cif), get_cell_angle_beta(cif) , get_cell_angle_gamma(cif)]
     d = Dict((2,3)=>1,(3,2)=>1,(1,2)=>3,(2,1)=>3,(1,3)=>2,(3,1)=>2)
     o = sortperm(abc)
     if close(abc[o[1]], abc[o[3]]) && close(abc[o[2]], abc[o[3]]) && close(abc[o[1]], abc[o[2]])
