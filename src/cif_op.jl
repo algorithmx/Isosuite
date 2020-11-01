@@ -222,7 +222,7 @@ function swap_abc(
     pos = atom_config_pos(cif)
     atom_lines = cif_lines[pos:end]
     swap_components(lx) = lx[[collect(1:id_xyz-1); collect(id_xyz:id_xyz+2)[perm_abc]; collect(id_xyz+3:length(lx))]]
-    swap_a_line(l) = swap_components(SPLTS(l))
+    swap_a_line(l) = join( swap_components(SPLTS(l)), "  " )
     if pos <= 0
         @warn "swap_abc() has got cif with wrong format. Did nothing."
         return cif_lines0
