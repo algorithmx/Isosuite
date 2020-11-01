@@ -80,7 +80,6 @@ function improve_cif(title::AbstractString, old_cif_fn::AbstractString)
     keep_info_kw = [
         "chemical_formula_structural",
         "chemical_formula_sum",
-        "cell_formula_units_Z"
     ]
     lines_to_keep = String[strip(first(extract_kw(old_cif_fn, kw))) for kw in keep_info_kw]
     gen_cif_lines = generate_cif(title, findsym_cifinput(old_cif_fn))
