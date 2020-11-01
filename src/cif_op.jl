@@ -198,10 +198,10 @@ function swap_xyz(l, perm)::String
     xyz = SPLTA(last(cmpnt))
     perm_inv = Dict(perm[i]=>i for i=1:3)
     rules = [["x","y","z"][perm[i]]=>["L","M","N"][i] for i=1:3]
-    replall(x) = replace(x,replace(x,replace(x,rules[1]),rules[2]),rules[3])
+    replall(x) = replace(replace(replace(x,rules[1]),rules[2]),rules[3])
     xyz_new = String[strip(replall(xyz[perm[i]])) for i=1:3]
     rules1 = [["L","M","N"][i]=>["x","y","z"][i] for i=1:3]
-    replall1(x) = replace(x,replace(x,replace(x,rules1[1]),rules1[2]),rules1[3])
+    replall1(x) = replace(replace(replace(x,rules1[1]),rules1[2]),rules1[3])
     return first(cmpnt) * "   " * replall1(join(xyz_new,","))
 end
 
