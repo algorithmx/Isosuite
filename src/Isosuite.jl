@@ -19,6 +19,8 @@ module Isosuite
     export extract_kw, get_symmetry_Int_Tables_number, get_String
     export get_cell_length_a, get_cell_length_b, get_cell_length_c
     export get_cell_angle_alpha, get_cell_angle_beta, get_cell_angle_gamma
+    export extract_atom_config, compute_chemical_formula_structural
+    export swap_abc
 
     export iso, irrep_matrix, irrep_names, all_kvectors, all_elements
 

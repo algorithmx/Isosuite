@@ -71,13 +71,29 @@ function extract_lattice_parameters(
     return Tuple( collect((get_number(get_line(cif_lines,w)) for w in kw)) )
 end
 
-
 extract_lattice_parameters(cif_fn::S) where {S<:AbstractString} = extract_lattice_parameters(readlines(cif_fn))
 
-extract_kw(cif_fn::S, kw) where {S<:AbstractString} = readlines(pipeline(`cat $cif_fn`, `grep $kw`))
+function extract_kw(
+    cif_fn::S, 
+    kw
+    ) where {S<:AbstractString}
+    return readlines(pipeline(`cat $cif_fn`, `grep $kw`))
+end
 
-function get_number(cif_fn, kw; default=0.0, parser=(x->parse(Float64,x)))
-    l = extract_kw(cif_fn, kw)
+function extract_kw(
+    cif_lines::Vector{S}, 
+    kw
+    ) where {S<:AbstractString}
+    i=rand(0:99999)
+    fn = "/tmp/extract_kw.$i.tmp"
+    cif_lines >>> fn
+    res = extract_kw(fn, kw)
+    rm(fn)
+    return res
+end
+
+function get_number(cif, kw::AbstractString; default=0.0, parser=(x->parse(Float64,x)))
+    l = extract_kw(cif, kw)
     if l === nothing || length(l) == 0
         return default
     else
@@ -85,19 +101,132 @@ function get_number(cif_fn, kw; default=0.0, parser=(x->parse(Float64,x)))
     end
 end
 
-get_Int(cif_fn, kw) = get_number(cif_fn, kw; default=1, parser=(x->parse(Int,x)))
+get_Int(cif, kw) = get_number(cif, kw; default=1, parser=(x->parse(Int,x)))
 
-get_Float(cif_fn, kw) = get_number(cif_fn, kw; default=0.0, parser=(x->parse(Float64,x)))
+get_Float(cif, kw) = get_number(cif, kw; default=0.0, parser=(x->parse(Float64,x)))
 
-get_String(cif_fn, kw) = get_number(cif_fn, kw; default=0.0, parser=(x->string(x)))
+get_String(cif, kw) = get_number(cif, kw; default=0.0, parser=(x->string(x)))
 
-get_symmetry_Int_Tables_number(cif_fn) = get_Int(cif_fn, "symmetry_Int_Tables_number")
+get_symmetry_Int_Tables_number(cif) = get_Int(cif, "symmetry_Int_Tables_number")
 
-get_cell_length_a(cif_fn) = get_Float(cif_fn, "cell_length_a")
-get_cell_length_b(cif_fn) = get_Float(cif_fn, "cell_length_b")
-get_cell_length_c(cif_fn) = get_Float(cif_fn, "cell_length_c")
+get_cell_length_a(cif) = get_Float(cif, "cell_length_a")
+get_cell_length_b(cif) = get_Float(cif, "cell_length_b")
+get_cell_length_c(cif) = get_Float(cif, "cell_length_c")
 
-get_cell_angle_alpha(cif_fn) = get_Float(cif_fn, "cell_angle_alpha")
-get_cell_angle_beta(cif_fn)  = get_Float(cif_fn, "cell_angle_beta")
-get_cell_angle_gamma(cif_fn) = get_Float(cif_fn, "cell_angle_gamma")
+get_cell_angle_alpha(cif) = get_Float(cif, "cell_angle_alpha")
+get_cell_angle_beta(cif)  = get_Float(cif, "cell_angle_beta")
+get_cell_angle_gamma(cif) = get_Float(cif, "cell_angle_gamma")
 
+
+function atom_config_pos(
+    cif
+    )::Int
+    cif_lines = (cif isa AbstractString) ? readlines(cif) : cif[1:end]
+    atm_lines = readlines(pipeline(`cat $cif_fn`, `grep "_atom_site_"`))
+    pos = findlast(x->occursin(last(atm_lines),x), cif_lines)
+    if pos === nothing
+        @warn "extract_config($cif_fn) has got a cif file with wrong format."
+        return -1
+    end
+    return pos+1
+end
+
+
+function extract_atom_config(
+    cif
+    )::Vector{String}
+    cif_lines = (cif isa AbstractString) ? readlines(cif) : cif[1:end]
+    pos = atom_config_pos(cif)
+    return pos>0 ? cif_lines[pos:end] : String[] 
+end
+
+
+function compute_chemical_formula_structural(
+    cif; 
+    atom_type_pos=2, 
+    multiplicity_pos=3
+    )::Dict
+    config_lines = extract_atom_config(cif)
+    @inline atm_type(x) = x[atom_type_pos]
+    @inline atm_mult(x) = x[multiplicity_pos]
+    atm = zip(atm_type.(SPLTS.(config_lines)), atm_mult.(SPLTS.(config_lines)))
+    return Dict(a=>sum([parse(Int,last(x)) for x in atm if first(x)==a]) for a in unique(first.(atm)))
+end
+
+function abc_sortperm(
+    cif;
+    tol = 1e-6
+    )::Vector{Int64}
+
+    close(x,y) = abs(x-y) < tol
+    abc = (get_cell_length_a(cif), get_cell_length_b(cif), get_cell_length_c(cif))
+    angles = (get_cell_angle_alpha(cif), get_cell_angle_beta(cif) , get_cell_angle_gamma(cif))
+    d = Dict((2,3)=>1,(3,2)=>1,(1,2)=>3,(2,1)=>3,(1,3)=>2,(3,1)=>2)
+    o = sortperm(abc)
+    if close(abc[o[1]], abc[o[3]]) && close(abc[o[2]], abc[o[3]]) && close(abc[o[1]], abc[o[2]])
+        a = sortperm(angles)
+        if close(angle[a[1]],angle[a[2]]) && close(angle[a[1]],angle[a[3]]) && close(angle[a[2]],angle[a[3]])
+            return [1,2,3]
+        elseif close(angle[a[1]],angle[a[2]])
+            return a
+        elseif close(angle[a[1]],angle[a[3]])
+            return a[[1,3,2]]
+        elseif close(angle[a[2]],angle[a[3]])
+            return a[[2,3,1]]
+        else
+            return a
+        end
+    elseif close(abc[o[1]], abc[o[2]])
+        if angles[d[(o[1],o[3])]] < angles[d[(o[2],o[3])]]
+            return o
+        else
+            return o[[2,1,3]]
+        end
+    elseif close(abc[o[2]], abc[o[3]])
+        if angles[d[(o[1],o[2])]] < angles[d[(o[1],o[3])]]
+            return o[[2,3,1]]
+        else
+            return o[[3,2,1]]
+        end
+    else
+        return o
+    end
+end
+
+
+function swap_abc(
+    cif;
+    id_xyz = 5,
+    tol = 1e-6
+    )
+
+    perm_abc = abc_sortperm(cif)
+    d = Dict((2,3)=>1,(3,2)=>1,(1,2)=>3,(2,1)=>3,(1,3)=>2,(3,1)=>2)
+    perm_angles = Int64[ d[(perm_abc[2],perm_abc[3])], d[(perm_abc[3],perm_abc[1])], d[(perm_abc[1],perm_abc[2])] ]
+    cif_lines0 = (cif isa AbstractString) ? readlines(cif) : cif
+    
+    cif_lines = cif_lines0[1:end]
+
+    @inline il(kw) = findfirst(x->occursin(kw,x), cif_lines)
+    abc_line_ids = Int64[il("cell_length_a"), il("cell_length_b"), il("cell_length_c")]
+    αβγ_line_ids = Int64[il("cell_angle_alpha"), il("cell_angle_beta"), il("cell_angle_gamma")]
+    abc0 = cif_lines[abc_line_ids]
+    αβγ0 = cif_lines[αβγ_line_ids]
+    cif_lines[abc_line_ids[1]] = abc0[perm_abc[1]]
+    cif_lines[abc_line_ids[2]] = abc0[perm_abc[2]]
+    cif_lines[abc_line_ids[3]] = abc0[perm_abc[3]]
+    cif_lines[αβγ_line_ids[1]] = αβγ0[perm_angles[1]]
+    cif_lines[αβγ_line_ids[2]] = αβγ0[perm_angles[2]]
+    cif_lines[αβγ_line_ids[3]] = αβγ0[perm_angles[3]]
+
+    pos = atom_config_pos(cif)
+    atom_lines = cif_lines[pos:end]
+    swap_components(lx) = lx[[collect(1:id_xyz-1); collect(id_xyz:id_xyz+2)[perm_abc]; collect(id_xyz+3:length(lx))]]
+    swap_a_line(l) = swap_components(SPLTS(l))
+    if pos <= 0
+        @warn "swap_abc() has got cif with wrong format. Did nothing."
+        return cif_lines0
+    else
+        return String[cif_lines[1:pos-1]; swap_a_line.(cif_lines[pos:end])]
+    end
+end
