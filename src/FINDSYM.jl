@@ -97,7 +97,7 @@ function improve_cif(title::AbstractString, old_cif_fn::AbstractString)
     end
 end
 
-improve_cif(title::AbstractString, old_cif_fn::AbstractString, new_cif_fn::AbstractString) = generate_cif(title, findsym_cifinput(old_cif_fn)) >>> new_cif_fn
+improve_cif(title::AbstractString, old_cif_fn::AbstractString, new_cif_fn::AbstractString) = improve_cif(title, old_cif_fn) >>> new_cif_fn
 
 
 function extract_cif(outp)
