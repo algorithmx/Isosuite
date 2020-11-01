@@ -73,3 +73,31 @@ end
 
 
 extract_lattice_parameters(cif_fn::S) where {S<:AbstractString} = extract_lattice_parameters(readlines(cif_fn))
+
+extract_kw(cif_fn::S, kw) where {S<:AbstractString} = readlines(pipeline(`cat $cif_fn`, `grep $kw`))
+
+function get_number(cif_fn, kw; default=0.0, parser=(x->parse(Float64,x)))
+    l = extract_kw(cif_fn, kw)
+    if l === nothing || length(l) == 0
+        return default
+    else
+        return parser(last(SPLTS(first(l))))
+    end
+end
+
+get_Int(cif_fn, kw) = get_number(cif_fn, kw; default=1, parser=(x->parse(Int,x)))
+
+get_Float(cif_fn, kw) = get_number(cif_fn, kw; default=0.0, parser=(x->parse(Float64,x)))
+
+get_String(cif_fn, kw) = get_number(cif_fn, kw; default=0.0, parser=(x->string(x)))
+
+get_symmetry_Int_Tables_number(cif_fn) = get_Int(cif_fn, "symmetry_Int_Tables_number")
+
+get_cell_length_a(cif_fn) = get_Float(cif_fn, "cell_length_a")
+get_cell_length_b(cif_fn) = get_Float(cif_fn, "cell_length_b")
+get_cell_length_c(cif_fn) = get_Float(cif_fn, "cell_length_c")
+
+get_cell_angle_alpha(cif_fn) = get_Float(cif_fn, "cell_angle_alpha")
+get_cell_angle_beta(cif_fn)  = get_Float(cif_fn, "cell_angle_beta")
+get_cell_angle_gamma(cif_fn) = get_Float(cif_fn, "cell_angle_gamma")
+

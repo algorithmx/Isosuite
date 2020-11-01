@@ -76,7 +76,23 @@ end
 
 generate_cif(title::AbstractString, script::AbstractString)  = generate_cif(title, SPLTN(script))
 
-improve_cif(title::AbstractString, old_cif_fn::AbstractString) = generate_cif(title, findsym_cifinput(old_cif_fn))
+function improve_cif(title::AbstractString, old_cif_fn::AbstractString)
+    keep_info_kw = [
+        "chemical_formula_structural",
+        "chemical_formula_sum",
+        "cell_volume",
+        "cell_formula_units_Z"
+    ]
+    lines_to_keep = String[strip(extract_kw(old_cif_fn, kw)) for kw in keep_info_kw]
+    gen_cif_lines = generate_cif(title, findsym_cifinput(old_cif_fn))
+    pos = findfirst(x->occursin("cell_volume",x), gen_cif_lines)
+    if pos === nothing
+        @warn "improve_cif($title, \n$old_cif_fn) : \nOld lines not kept because kw _cell_volume not found."
+        return gen_cif_lines
+    else
+        return String[gen_cif_lines[1:pos]; lines_to_keep; gen_cif_lines[pos+1:end]]
+    end
+end
 
 improve_cif(title::AbstractString, old_cif_fn::AbstractString, new_cif_fn::AbstractString) = generate_cif(title, findsym_cifinput(old_cif_fn)) >>> new_cif_fn
 
