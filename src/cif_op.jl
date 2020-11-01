@@ -193,6 +193,17 @@ function abc_sortperm(
     end
 end
 
+function swap_xyz(l, perm)::String
+    cmpnt = SPLTS(l)
+    xyz = SPLTA(last(cmpnt))
+    perm_inv = Dict(perm[i]=>i for i=1:3)
+    rules = [["x","y","z"][perm[i]]=>["L","M","N"][i] for i=1:3]
+    replall(x) = replace(x,replace(x,replace(x,rules[1]),rules[2]),rules[3])
+    xyz_new = String[strip(replall(xyz[perm[i]])) for i=1:3]
+    rules1 = [["L","M","N"][i]=>["x","y","z"][i] for i=1:3]
+    replall1(x) = replace(x,replace(x,replace(x,rules1[1]),rules1[2]),rules1[3])
+    return first(cmpnt) * "   " * replall1(join(xyz_new,","))
+end
 
 function swap_abc(
     cif;
@@ -212,16 +223,32 @@ function swap_abc(
     αβγ_line_ids = Int64[il("cell_angle_alpha"), il("cell_angle_beta"), il("cell_angle_gamma")]
     abc0 = cif_lines[abc_line_ids]
     αβγ0 = cif_lines[αβγ_line_ids]
-    cif_lines[abc_line_ids[1]] = (@sprintf "_cell_length_a   %s" last(SPLTS(abc0[perm_abc[1]])))
-    cif_lines[abc_line_ids[2]] = (@sprintf "_cell_length_b   %s" last(SPLTS(abc0[perm_abc[2]])))
-    cif_lines[abc_line_ids[3]] = (@sprintf "_cell_length_c   %s" last(SPLTS(abc0[perm_abc[3]])))
+    cif_lines[abc_line_ids[1]] = (@sprintf "_cell_length_a      %s" last(SPLTS(abc0[perm_abc[1]])))
+    cif_lines[abc_line_ids[2]] = (@sprintf "_cell_length_b      %s" last(SPLTS(abc0[perm_abc[2]])))
+    cif_lines[abc_line_ids[3]] = (@sprintf "_cell_length_c      %s" last(SPLTS(abc0[perm_abc[3]])))
     cif_lines[αβγ_line_ids[1]] = (@sprintf "_cell_angle_alpha   %s" last(SPLTS(αβγ0[perm_angles[1]])))
     cif_lines[αβγ_line_ids[2]] = (@sprintf "_cell_angle_beta    %s" last(SPLTS(αβγ0[perm_angles[2]])))
     cif_lines[αβγ_line_ids[3]] = (@sprintf "_cell_angle_gamma   %s" last(SPLTS(αβγ0[perm_angles[3]])))
 
+
+    p_symm_op = findlast(x->occursin("space_group_symop",x), cif_lines)
+    p = p_symm_op+1
+    while !occursin("loop", cif_lines[p])
+        cif_lines[p] = swap_xyz(cif_lines[p], perm_abc)
+        p += 1
+    end
+
+    p_remove = findlast(x->occursin("atom_site_fract_symmform",x),cif_lines)
+    cif_lines[p_remove] = ""
+    @debug "swap_abc() : \natom_site_fract_symmform has been removed."
+
     pos = atom_config_pos(cif)
     atom_lines = cif_lines[pos:end]
-    swap_components(lx) = lx[[collect(1:id_xyz-1); collect(id_xyz:id_xyz+2)[perm_abc]; collect(id_xyz+3:length(lx))]]
+    dp = pos-p_remove-1
+    @debug "swap_abc() :  dp = $dp"
+
+    ids(l) = [i for i in [collect(1:id_xyz-1); collect(id_xyz:id_xyz+2)[perm_abc]; collect(id_xyz+3:length(l))] if i!=length(l)-dp]
+    swap_components(lx) = lx[ids(lx)]
     swap_a_line(l) = join( swap_components(SPLTS(l)), "  " )
     if pos <= 0
         @warn "swap_abc() has got cif with wrong format. Did nothing."
