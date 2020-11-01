@@ -122,7 +122,7 @@ function atom_config_pos(
     cif
     )::Int
     cif_lines = (cif isa AbstractString) ? readlines(cif) : cif[1:end]
-    atm_lines = readlines(pipeline(`cat $cif_fn`, `grep "_atom_site_"`))
+    atm_lines = cif_lines[findall(x->occursin("_atom_site_",x), cif_lines)]
     pos = findlast(x->occursin(last(atm_lines),x), cif_lines)
     if pos === nothing
         @warn "extract_config($cif_fn) has got a cif file with wrong format."
