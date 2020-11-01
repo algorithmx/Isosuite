@@ -254,6 +254,6 @@ function swap_abc(
         @warn "swap_abc() has got cif with wrong format. Did nothing."
         return cif_lines0
     else
-        return String[cif_lines[1:pos-1]; swap_a_line.(cif_lines[pos:end])]
+        return String[cif_lines[1:pos-1]; swap_a_line.(cif_lines[pos:end])] |> STRPRM
     end
 end
