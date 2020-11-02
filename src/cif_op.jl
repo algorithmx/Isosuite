@@ -298,14 +298,16 @@ swap_abc(
 #
 
 function sort_atom_position_lines(
-    lines
+    cif
     )
+    # section _atom_site_ from cif
     _atom_site_ = extract_all_kw(cif, "_atom_site_")
     id_xyz = findfirst(x->occursin("_atom_site_fract_x",x), _atom_site_)
     @assert findfirst(x->occursin("_atom_site_fract_z",x), _atom_site_) == id_xyz+2
     id_type  = findfirst(x->occursin("_atom_site_type_symbol",x), _atom_site_)
     id_label = findfirst(x->occursin("_atom_site_label",x), _atom_site_)
 
+    # local functions
     @inline pf(s) = (abs(parse(Float64,s)<1e-8) ? 0.0 : parse(Float64,s)) 
     num2str(x) = (@sprintf "%10.6%" x)
     @inline correct_sign(x) = String[x[1:id_xyz-1]; num2str.(pf.(x[id_xyz:id_xyz+2])) ; x[id_xyz+3:end]]
@@ -313,7 +315,8 @@ function sort_atom_position_lines(
     @inline correct_label(x,lb) = String[x[1:id_label-1]; [lb,]; x[id_label+1:end]]
     @inline joinS(x) = join(x, "   ")
 
-    pos_lines = SPLTS.(lines)
+    cif_lines = (cif isa AbstractString) ? readlines(cif) : cif[1:end]
+    pos_lines = SPLTS.(cif_lines)
     atm_unique = unique(map(x->x[id_type], pos_lines))
     pos_by_atm = [sortbyxyz([correct_sign(p) for p in pos if last(p)==a]) for a in atm_unique]
     pos_line_final = vcat([[correct_label(atm_group[i],"$(atm_group[i][id_type])$i") 

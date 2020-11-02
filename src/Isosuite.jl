@@ -23,6 +23,7 @@ module Isosuite
     export get_cell_params
     export extract_atom_config, compute_chemical_formula_structural
     export swap_abc, swap_abc_by_perm
+    export sort_atom_position_lines
 
     export iso, irrep_matrix, irrep_names, all_kvectors, all_elements
 
