@@ -330,7 +330,7 @@ function sort_atom_position_lines(
                                 for atm_group in pos_by_atm]...)  .|> joinS
 
     @info "sort_atom_position_lines : "
-    println.(lines)
+    println.(joinS.(pos_lines))
     println("---")
     println.(pos_line_final)
     return pos_line_final
