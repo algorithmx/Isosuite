@@ -164,6 +164,9 @@ function extract_atom_config(
     )::Vector{String}
     cif_lines = (cif isa AbstractString) ? readlines(cif) : cif[1:end]
     pos = atom_config_pos(cif)
+    if pos <=0
+        @warn "extract_atom_config() has pos < 0."
+    end
     return pos>0 ? cif_lines[pos:end] : String[] 
 end
 
@@ -318,17 +321,14 @@ function sort_atom_position_lines(
     @inline correct_label(x,lb) = String[x[1:id_label-1]; [lb,]; x[id_label+1:end]]
     @inline joinS(x) = join(x, "   ")
 
-    cif_lines = (cif isa AbstractString) ? readlines(cif) : cif[1:end]
-    @info typeof(cif_lines)
-    @info length(cif_lines)
-    pos_lines = SPLTS.(cif_lines)
+    pos_lines = SPLTS.(extract_atom_config(cif))    
     atm_unique = unique(map(x->x[id_type], pos_lines))
     pos_by_atm = [sortbyxyz([correct_sign(p) for p in pos if last(p)==a]) for a in atm_unique]
     pos_line_final = vcat([[correct_label(atm_group[i],"$(atm_group[i][id_type])$i") 
                             for i=1:length(atm_group)] 
                                 for atm_group in pos_by_atm]...)  .|> joinS
 
-    @debug "sort_atom_position_lines : "
+    @info "sort_atom_position_lines : "
     println.(lines)
     println("---")
     println.(pos_line_final)
