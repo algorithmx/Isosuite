@@ -74,32 +74,51 @@ end
 extract_lattice_parameters(cif_fn::S) where {S<:AbstractString} = extract_lattice_parameters(readlines(cif_fn))
 
 function extract_kw(
-    cif_fn::S, 
+    cif, 
     kw
-    ) where {S<:AbstractString}
-    return readlines(pipeline(`cat $cif_fn`, `grep $kw`))
+    )
+    @assert (cif isa AbstractString) || (cif isa AbstractVector)
+    @assert (kw isa AbstractString) || (kw isa AbstractVector)
+    cif_lines = String[]
+    if cif isa AbstractString
+        if !isfile(cif)
+            return String[]
+        else
+            cif_lines = readlines(cif)
+        end
+    else
+        cif_lines = cif[1:end]
+    end
+
+    if kw isa AbstractString
+        p = findfirst(x->occursin(kw,x), cif_lines)
+        return p===nothing ? String[] : cif_lines[p]
+    else
+        ps = [findfirst(x->occursin(k,x), cif_lines) for k in kw]
+        return cif_lines[ps]
+    end
 end
 
-function extract_kw(
-    cif_lines::Vector{S}, 
-    kw
-    ) where {S<:AbstractString}
-    i=rand(0:99999)
-    fn = "/tmp/extract_kw.$i.tmp"
-    cif_lines >>> fn
-    res = extract_kw(fn, kw)
-    rm(fn)
-    return res
-end
 
 function get_number(cif, kw::AbstractString; default=0.0, parser=(x->parse(Float64,x)))
     l = extract_kw(cif, kw)
-    if l === nothing || length(l) == 0
+    if length(l) == 0
         return default
     else
-        return parser(last(SPLTS(first(l))))
+        return parser(last(SPLTS(l)))
     end
 end
+
+
+function get_number(cif, kw::AbstractVector; default=0.0, parser=(x->parse(Float64,x)))
+    l = extract_kw(cif, kw)
+    if length(l) == 0
+        return [default,]
+    else
+        return parser.(last.(SPLTS.(l)))
+    end
+end
+
 
 get_Int(cif, kw) = get_number(cif, kw; default=1, parser=(x->parse(Int,x)))
 
@@ -116,6 +135,16 @@ get_cell_length_c(cif) = get_Float(cif, "cell_length_c")
 get_cell_angle_alpha(cif) = get_Float(cif, "cell_angle_alpha")
 get_cell_angle_beta(cif)  = get_Float(cif, "cell_angle_beta")
 get_cell_angle_gamma(cif) = get_Float(cif, "cell_angle_gamma")
+
+get_cell_params(cif) = get_number(  cif, 
+                                    ["cell_length_a",
+                                    "cell_length_b",
+                                    "cell_length_c",
+                                    "cell_angle_alpha",
+                                    "cell_angle_beta",
+                                    "cell_angle_gamma",]; 
+                                    default=0.0, 
+                                    parser=(x->parse(Float64,x)) )
 
 
 function atom_config_pos(
@@ -159,8 +188,9 @@ function abc_sortperm(
     )::Vector{Int64}
 
     close(x,y) = abs(x-y) < tol
-    abc = [get_cell_length_a(cif), get_cell_length_b(cif), get_cell_length_c(cif)]
-    angles = [get_cell_angle_alpha(cif), get_cell_angle_beta(cif) , get_cell_angle_gamma(cif)]
+    params = get_cell_params(cif)
+    abc = params[1:3]
+    angles = params[4:6]
     d = Dict((2,3)=>1,(3,2)=>1,(1,2)=>3,(2,1)=>3,(1,3)=>2,(3,1)=>2)
     o = sortperm(abc)
     if close(abc[o[1]], abc[o[3]]) && close(abc[o[2]], abc[o[3]]) && close(abc[o[1]], abc[o[2]])
@@ -205,17 +235,18 @@ function swap_xyz(l, perm)::String
     return first(cmpnt) * "   " * replall1(join(xyz_new,","))
 end
 
-function swap_abc(
-    cif;
+
+function swap_abc_by_perm(
+    cif,
+    perm_abc;
     id_xyz = 5,
     tol = 1e-6
     )
 
-    perm_abc = abc_sortperm(cif)
     d = Dict((2,3)=>1,(3,2)=>1,(1,2)=>3,(2,1)=>3,(1,3)=>2,(3,1)=>2)
     perm_angles = Int64[ d[(perm_abc[2],perm_abc[3])], d[(perm_abc[3],perm_abc[1])], d[(perm_abc[1],perm_abc[2])] ]
     cif_lines0 = (cif isa AbstractString) ? readlines(cif) : cif
-    
+
     cif_lines = cif_lines0[1:end]
 
     @inline il(kw) = findfirst(x->occursin(kw,x), cif_lines)
@@ -229,7 +260,6 @@ function swap_abc(
     cif_lines[αβγ_line_ids[1]] = (@sprintf "_cell_angle_alpha   %s" last(SPLTS(αβγ0[perm_angles[1]])))
     cif_lines[αβγ_line_ids[2]] = (@sprintf "_cell_angle_beta    %s" last(SPLTS(αβγ0[perm_angles[2]])))
     cif_lines[αβγ_line_ids[3]] = (@sprintf "_cell_angle_gamma   %s" last(SPLTS(αβγ0[perm_angles[3]])))
-
 
     p_symm_op = findlast(x->occursin("space_group_symop",x), cif_lines)
     p = p_symm_op+1
@@ -257,3 +287,10 @@ function swap_abc(
         return String[cif_lines[1:pos-1]; swap_a_line.(cif_lines[pos:end])] |> STRPRM
     end
 end
+
+
+swap_abc(
+    cif;
+    id_xyz = 5,
+    tol = 1e-6
+    ) =  swap_abc_by_perm(cif, abc_sortperm(cif), id_xyz=id_xyz, tol=tol)
