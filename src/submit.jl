@@ -10,7 +10,7 @@ end
 
 write_to_file(lines::Vector{S}, fn) where {S<:AbstractString} = write_to_file(⦿(lines), fn)
 
->>>(lines, fn) = write_to_file(lines, "$fn")
+⇶(lines, fn) = write_to_file(lines, "$fn")
 
 
 ## -----------------------------------------------
