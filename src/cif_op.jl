@@ -289,11 +289,14 @@ function swap_abc_by_perm(
 end
 
 
-swap_abc(
+function swap_abc(
     cif;
-    id_xyz = 5,
     tol = 1e-6
-    ) =  swap_abc_by_perm(cif, abc_sortperm(cif), id_xyz=id_xyz, tol=tol)
+    )
+    _atom_site_ = extract_all_kw(cif, "_atom_site_")
+    id_xyz = findfirst(x->occursin("_atom_site_fract_x",x), _atom_site_)
+    return  swap_abc_by_perm(cif, abc_sortperm(cif), id_xyz=id_xyz, tol=tol)
+end
 
 #
 
@@ -309,7 +312,7 @@ function sort_atom_position_lines(
 
     # local functions
     @inline pf(s) = (abs(parse(Float64,s)<1e-8) ? 0.0 : parse(Float64,s)) 
-    num2str(x) = (@sprintf "%10.6%" x)
+    num2str(x) = (@sprintf "%10.6f" x)
     @inline correct_sign(x) = String[x[1:id_xyz-1]; num2str.(pf.(x[id_xyz:id_xyz+2])) ; x[id_xyz+3:end]]
     sortbyxyz(V) = V[sortperm(V,by=x->x[id_xyz:id_xyz+2])]
     @inline correct_label(x,lb) = String[x[1:id_label-1]; [lb,]; x[id_label+1:end]]
