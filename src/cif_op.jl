@@ -57,12 +57,11 @@ function minimal_cif(
 end
 
 
-function extract_kw(
+function extract_all_kw(
     cif, 
-    kw
+    kw::AbstractString
     )
     @assert (cif isa AbstractString) || (cif isa AbstractVector)
-    @assert (kw isa AbstractString) || (kw isa AbstractVector)
     cif_lines = String[]
     if cif isa AbstractString
         if !isfile(cif)
@@ -74,14 +73,34 @@ function extract_kw(
         cif_lines = cif[1:end]
     end
 
-    if kw isa AbstractString
-        p = findfirst(x->occursin(kw,x), cif_lines)
-        return p===nothing ? String[] : cif_lines[p]
-    else
-        ps = [findfirst(x->occursin(k,x), cif_lines) for k in kw]
-        return cif_lines[ps]
-    end
+    p = findall(x->occursin(kw,x), cif_lines)
+    return p===nothing ? String[] : cif_lines[sort(p)]
 end
+
+extract_all_kw(cif,kw::AbstractVector) = [extract_all_kw(cif,k) for k in kw]
+
+
+function extract_kw(
+    cif, 
+    kw::AbstractString
+    )
+    @assert (cif isa AbstractString) || (cif isa AbstractVector)
+    cif_lines = String[]
+    if cif isa AbstractString
+        if !isfile(cif)
+            return String[]
+        else
+            cif_lines = readlines(cif)
+        end
+    else
+        cif_lines = cif[1:end]
+    end
+
+    p = findfirst(x->occursin(kw,x), cif_lines)
+    return p===nothing ? String[] : cif_lines[p]
+end
+
+extract_kw(cif,kw::AbstractVector) = [extract_kw(cif,k) for k in kw]
 
 
 function get_number(cif, kw::AbstractString; default=0.0, parser=(x->parse(Float64,x)))
@@ -94,13 +113,8 @@ function get_number(cif, kw::AbstractString; default=0.0, parser=(x->parse(Float
 end
 
 
-function get_number(cif, kw::AbstractVector; default=0.0, parser=(x->parse(Float64,x)))
-    l = extract_kw(cif, kw)
-    if length(l) == 0
-        return [default,]
-    else
-        return parser.(last.(SPLTS.(l)))
-    end
+@inline function get_number(cif, kw::AbstractVector; default=0.0, parser=(x->parse(Float64,x)))
+    return [get_number(cif,k,default=default,parser=parser) for k in kw]
 end
 
 
@@ -280,3 +294,35 @@ swap_abc(
     id_xyz = 5,
     tol = 1e-6
     ) =  swap_abc_by_perm(cif, abc_sortperm(cif), id_xyz=id_xyz, tol=tol)
+
+#
+
+function sort_atom_position_lines(
+    lines
+    )
+    _atom_site_ = extract_all_kw(cif, "_atom_site_")
+    id_xyz = findfirst(x->occursin("_atom_site_fract_x",x), _atom_site_)
+    @assert findfirst(x->occursin("_atom_site_fract_z",x), _atom_site_) == id_xyz+2
+    id_type  = findfirst(x->occursin("_atom_site_type_symbol",x), _atom_site_)
+    id_label = findfirst(x->occursin("_atom_site_label",x), _atom_site_)
+
+    @inline pf(s) = (abs(parse(Float64,s)<1e-8) ? 0.0 : parse(Float64,s)) 
+    num2str(x) = (@sprintf "%10.6%" x)
+    @inline correct_sign(x) = String[x[1:id_xyz-1]; num2str.(pf.(x[id_xyz:id_xyz+2])) ; x[id_xyz+3:end]]
+    sortbyxyz(V) = V[sortperm(V,by=x->x[id_xyz:id_xyz+2])]
+    @inline correct_label(x,lb) = String[x[1:id_label-1]; [lb,]; x[id_label+1:end]]
+    @inline joinS(x) = join(x, "   ")
+
+    pos_lines = SPLTS.(lines)
+    atm_unique = unique(map(x->x[id_type], pos_lines))
+    pos_by_atm = [sortbyxyz([correct_sign(p) for p in pos if last(p)==a]) for a in atm_unique]
+    pos_line_final = vcat([[correct_label(atm_group[i],"$(atm_group[i][id_type])$i") 
+                            for i=1:length(atm_group)] 
+                                for atm_group in pos_by_atm]...)  .|> joinS
+
+    @debug "sort_atom_position_lines : "
+    println.(lines)
+    println("---")
+    println.(pos_line_final)
+    return pos_line_final
+end
