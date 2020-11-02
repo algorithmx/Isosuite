@@ -323,7 +323,8 @@ function sort_atom_position_lines(
 
     pos_lines = SPLTS.(extract_atom_config(cif))    
     atm_unique = unique(map(x->x[id_type], pos_lines))
-    pos_by_atm = [sortbyxyz([correct_sign(p) for p in pos if last(p)==a]) for a in atm_unique]
+    pos_by_atm = [  sortbyxyz([correct_sign(p) for p in pos_lines if last(p)==a]) 
+                    for a in atm_unique ]
     pos_line_final = vcat([[correct_label(atm_group[i],"$(atm_group[i][id_type])$i") 
                             for i=1:length(atm_group)] 
                                 for atm_group in pos_by_atm]...)  .|> joinS
