@@ -81,9 +81,8 @@ function improve_cif(title::AbstractString, old_cif_fn::AbstractString)
         "chemical_formula_structural",
         "chemical_formula_sum",
     ]
-    @info extract_kw(old_cif_fn, keep_info_kw)
     
-    lines_to_keep = String[strip(first(extract_kw(old_cif_fn, kw))) for kw in keep_info_kw]
+    lines_to_keep = strip.(extract_kw(old_cif_fn, keep_info_kw))
     gen_cif_lines = generate_cif(title, findsym_cifinput(old_cif_fn))
     pos = findfirst(x->occursin("cell_volume",x), gen_cif_lines)
     if pos === nothing
