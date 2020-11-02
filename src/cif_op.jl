@@ -319,6 +319,8 @@ function sort_atom_position_lines(
     @inline joinS(x) = join(x, "   ")
 
     cif_lines = (cif isa AbstractString) ? readlines(cif) : cif[1:end]
+    @info typeof(cif_lines)
+    @info length(cif_lines)
     pos_lines = SPLTS.(cif_lines)
     atm_unique = unique(map(x->x[id_type], pos_lines))
     pos_by_atm = [sortbyxyz([correct_sign(p) for p in pos if last(p)==a]) for a in atm_unique]
