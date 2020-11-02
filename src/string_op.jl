@@ -4,6 +4,7 @@ SPLTN(sss::AbstractString)  = SPLTX(sss,"\n")
 SPLTS(sss::AbstractString)  = SPLTX(sss," ")
 SPLTS1(sss::AbstractString) = SPLTX1(sss," ")
 SPLTC(sss::AbstractString)  = SPLTX(sss,":")
+SPLTD(sss::AbstractString)  = SPLTX(sss,".")
 SPLTA(sss::AbstractString)  = SPLTX(sss,",")
 SPLTEQ(sss::AbstractString)  = SPLTX(sss,"=")
 
