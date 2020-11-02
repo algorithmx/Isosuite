@@ -81,7 +81,7 @@ function improve_cif(title::AbstractString, old_cif_fn::AbstractString)
         "chemical_formula_structural",
         "chemical_formula_sum",
     ]
-    @debug extract_kw(old_cif_fn, keep_info_kw)
+    @info extract_kw(old_cif_fn, keep_info_kw)
     
     lines_to_keep = String[strip(first(extract_kw(old_cif_fn, kw))) for kw in keep_info_kw]
     gen_cif_lines = generate_cif(title, findsym_cifinput(old_cif_fn))
