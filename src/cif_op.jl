@@ -306,6 +306,7 @@ end
 function sort_atom_position_lines(
     cif
     )
+    atm_p = atom_config_pos(cif)
     # section _atom_site_ from cif
     _atom_site_ = extract_all_kw(cif, "_atom_site_")
     id_xyz = findfirst(x->occursin("_atom_site_fract_x",x), _atom_site_)
@@ -321,10 +322,12 @@ function sort_atom_position_lines(
     @inline correct_label(x,lb) = String[x[1:id_label-1]; [lb,]; x[id_label+1:end]]
     @inline joinS(x) = join(x, "   ")
 
-    pos_lines = SPLTS.(extract_atom_config(cif))    
+    pos_lines = SPLTS.(extract_atom_config(cif))
     atm_unique = unique(map(x->x[id_type], pos_lines))
-    pos_by_atm = [  sortbyxyz([correct_sign(p) for p in pos_lines if last(p)==a]) 
+    @info "atm_unique = $atm_unique"
+    pos_by_atm = [  sortbyxyz([correct_sign(p) for p in pos_lines if last(p)==a])
                     for a in atm_unique ]
+    @info "length.(pos_by_atm) = $(length.(pos_by_atm))"
     pos_line_final = vcat([[correct_label(atm_group[i],"$(atm_group[i][id_type])$i") 
                             for i=1:length(atm_group)] 
                                 for atm_group in pos_by_atm]...)  .|> joinS
