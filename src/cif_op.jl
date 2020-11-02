@@ -57,22 +57,6 @@ function minimal_cif(
 end
 
 
-function extract_lattice_parameters(
-    cif_lines::Vector{S}
-    )::Tuple where {S<:AbstractString}
-    kw = [  "_cell_length_a"
-            "_cell_length_b"
-            "_cell_length_c"
-            "_cell_angle_alpha"
-            "_cell_angle_beta"
-            "_cell_angle_gamma" ]
-    @inline get_line(lines,w) = cif_lines[findfirst(x->occursin(w,x), lines)]
-    @inline get_number(l) = parse(Float64, SPLTS(strip(l))[2])
-    return Tuple( collect((get_number(get_line(cif_lines,w)) for w in kw)) )
-end
-
-extract_lattice_parameters(cif_fn::S) where {S<:AbstractString} = extract_lattice_parameters(readlines(cif_fn))
-
 function extract_kw(
     cif, 
     kw
@@ -138,14 +122,14 @@ get_cell_angle_gamma(cif) = get_Float(cif, "cell_angle_gamma")
 
 get_cell_params(cif) = get_number(  cif, 
                                     ["cell_length_a",
-                                    "cell_length_b",
-                                    "cell_length_c",
-                                    "cell_angle_alpha",
-                                    "cell_angle_beta",
-                                    "cell_angle_gamma",]; 
-                                    default=0.0, 
-                                    parser=(x->parse(Float64,x)) )
-
+                                        "cell_length_b",
+                                        "cell_length_c",
+                                        "cell_angle_alpha",
+                                        "cell_angle_beta",
+                                        "cell_angle_gamma",
+                                    ],
+                                    parser=(x->parse(Float64,x))  )
+                                                
 
 function atom_config_pos(
     cif
@@ -182,6 +166,7 @@ function compute_chemical_formula_structural(
     return Dict(a=>sum([parse(Int,last(x)) for x in atm if first(x)==a]) for a in unique(first.(atm)))
 end
 
+
 function abc_sortperm(
     cif;
     tol = 1e-6
@@ -189,8 +174,8 @@ function abc_sortperm(
 
     close(x,y) = abs(x-y) < tol
     params = get_cell_params(cif)
-    abc = params[1:3]
-    angles = params[4:6]
+    abc = [params[1],params[2],params[3]]
+    angles = [params[4],params[5],params[6]]
     d = Dict((2,3)=>1,(3,2)=>1,(1,2)=>3,(2,1)=>3,(1,3)=>2,(3,1)=>2)
     o = sortperm(abc)
     if close(abc[o[1]], abc[o[3]]) && close(abc[o[2]], abc[o[3]]) && close(abc[o[1]], abc[o[2]])
@@ -222,6 +207,7 @@ function abc_sortperm(
         return o
     end
 end
+
 
 function swap_xyz(l, perm)::String
     cmpnt = SPLTS(l)

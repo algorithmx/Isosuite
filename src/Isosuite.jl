@@ -14,7 +14,7 @@ module Isosuite
 
     export SPLTN, SPLTS, SPLTS1, SPLTC, SPLTEQ, SPLTA, STRPRM, write_to_file, >>>, ⦿
     
-    export minimal_cif, extract_lattice_parameters
+    export minimal_cif
 
     export extract_kw, get_symmetry_Int_Tables_number, get_String
     export get_cell_length_a, get_cell_length_b, get_cell_length_c
