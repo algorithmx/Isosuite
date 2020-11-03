@@ -88,6 +88,7 @@ function extract_kw(
     cif_lines = String[]
     if cif isa AbstractString
         if !isfile(cif)
+            @warn "extract_kw() : \n$cif file not found."
             return String[]
         else
             cif_lines = readlines(cif)
@@ -95,9 +96,14 @@ function extract_kw(
     else
         cif_lines = cif[1:end]
     end
-
+    
     p = findfirst(x->occursin(kw,x), cif_lines)
-    return p===nothing ? String[] : cif_lines[p]
+    if p===nothing
+        @warn "extract_kw() : \n$kw not found."
+        return String[]
+    else
+        return cif_lines[p]
+    end
 end
 
 extract_kw(cif,kw::AbstractVector) = [extract_kw(cif,k) for k in kw]
