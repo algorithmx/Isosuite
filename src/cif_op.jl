@@ -59,7 +59,7 @@ end
 
 function extract_all_kw(
     cif, 
-    kw::AbstractString
+    kw::Union{AbstractString,Regex}
     )
     @assert (cif isa AbstractString) || (cif isa AbstractVector)
     cif_lines = String[]
@@ -82,7 +82,7 @@ extract_all_kw(cif,kw::AbstractVector) = [extract_all_kw(cif,k) for k in kw]
 
 function extract_kw(
     cif, 
-    kw::AbstractString
+    kw::Union{AbstractString,Regex}
     )
     @assert (cif isa AbstractString) || (cif isa AbstractVector)
     cif_lines = String[]

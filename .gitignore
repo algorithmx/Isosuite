@@ -1,0 +1,6 @@
+/paper
+*.cif
+*.log
+*.dat
+*.a
+*.o
