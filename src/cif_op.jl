@@ -357,3 +357,21 @@ function sort_atom_position_lines(
     atm_p = atom_config_pos(cif)
     return [cif_lines[1:atm_p-1] ; pos_line_final]
 end
+
+
+function get_atom_frac_pos(
+    cif
+    )
+    # section _atom_site_ from cif
+    _atom_site_ = extract_all_kw(cif, "_atom_site_")
+    id_xyz = findfirst(x->occursin("_atom_site_fract_x",x), _atom_site_)
+    @assert findfirst(x->occursin("_atom_site_fract_z",x), _atom_site_) == id_xyz+2
+    id_type  = findfirst(x->occursin("_atom_site_type_symbol",x), _atom_site_)
+
+    # local functions
+    @inline pf(s) = (abs(parse(Float64,s)<1e-10) ? 0.0 : parse(Float64,s)) 
+
+    pos_lines = SPLTS.(extract_atom_config(cif))
+    return map(x->[x[id_type], pf(x[id_xyz]), pf(x[id_xyz+1]), pf(x[id_xyz+2])], pos_lines) |> sort
+end
+
