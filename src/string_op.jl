@@ -11,3 +11,5 @@ SPLTEQ(sss::AbstractString)  = SPLTX(sss,"=")
 STRPRM(lines) = String[strip(string(l)) for l in lines if length(strip(string(l)))>0]
 trim_comments_pound(lines) = String[l for l in STRPRM(lines) if !startswith(l,"#")]
 ⦿(sss::Vector{S}) where {S<:AbstractString} = join(sss,'\n')
+
+@inline decif(x) = first(SPLTD(x))

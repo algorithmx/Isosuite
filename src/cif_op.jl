@@ -65,6 +65,7 @@ function extract_all_kw(
     cif_lines = String[]
     if cif isa AbstractString
         if !isfile(cif)
+            @warn "extract_all_kw() : \n$cif file not found."
             return String[]
         else
             cif_lines = readlines(cif)
@@ -74,7 +75,12 @@ function extract_all_kw(
     end
 
     p = findall(x->occursin(kw,x), cif_lines)
-    return p===nothing ? String[] : cif_lines[sort(p)]
+    if p===nothing
+        @warn "extract_all_kw() : \n$kw not found."
+        return String[]
+    else
+        return cif_lines[sort(p)]
+    end
 end
 
 extract_all_kw(cif,kw::AbstractVector) = [extract_all_kw(cif,k) for k in kw]
@@ -83,13 +89,13 @@ extract_all_kw(cif,kw::AbstractVector) = [extract_all_kw(cif,k) for k in kw]
 function extract_kw(
     cif, 
     kw::Union{AbstractString,Regex}
-    )
+    )::String
     @assert (cif isa AbstractString) || (cif isa AbstractVector)
     cif_lines = String[]
     if cif isa AbstractString
         if !isfile(cif)
             @warn "extract_kw() : \n$cif file not found."
-            return String[]
+            return ""
         else
             cif_lines = readlines(cif)
         end
@@ -100,7 +106,7 @@ function extract_kw(
     p = findfirst(x->occursin(kw,x), cif_lines)
     if p===nothing
         @warn "extract_kw() : \n$kw not found."
-        return String[]
+        return ""
     else
         return cif_lines[p]
     end

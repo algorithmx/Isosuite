@@ -12,7 +12,7 @@ module Isosuite
 
     trslsh(l) = rstrip(l,['/'])
 
-    export SPLTN, SPLTS, SPLTS1, SPLTC, SPLTEQ, SPLTA, SPLTD, STRPRM, write_to_file, ⇶, ⦿
+    export SPLTN, SPLTS, SPLTS1, SPLTC, SPLTEQ, SPLTA, SPLTD, STRPRM, decif, write_to_file, ⇶, ⦿
     
     export minimal_cif
 
