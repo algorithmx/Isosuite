@@ -83,7 +83,7 @@ function improve_cif(title::AbstractString, old_cif_fn::AbstractString)
     ]
     title_line = (title=="") ? get_title_line(old_cif_fn) : title
     lines_to_keep = strip.(extract_kw(old_cif_fn, keep_info_kw))
-    gen_cif_lines = generate_cif(title, findsym_cifinput(old_cif_fn))
+    gen_cif_lines = generate_cif(title_line, findsym_cifinput(old_cif_fn))
     pos = findfirst(x->occursin("cell_volume",x), gen_cif_lines)
     if pos === nothing
         @warn "improve_cif($title, \n$old_cif_fn) : \nOld lines not kept because kw _cell_volume not found."
