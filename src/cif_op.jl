@@ -57,6 +57,17 @@ function minimal_cif(
 end
 
 
+function get_title_line(cif)
+    cif_lines = ( (cif isa AbstractString) ? (isfile(cif) ? readlines(cif) : String[]) : cif ) |> STRPRM |> trim_comments_pound
+    if length(cif_lines) == 0
+        @warn "get_title_line(): \nEmpty content."
+        return ""
+    else
+        return cif_lines[1]
+    end
+end
+
+
 function extract_all_kw(
     cif, 
     kw::Union{AbstractString,Regex}

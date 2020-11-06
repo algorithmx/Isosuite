@@ -16,6 +16,7 @@ module Isosuite
     
     export minimal_cif
 
+    export get_title_line
     export extract_kw, extract_all_kw
     export get_symmetry_Int_Tables_number, get_String
     export get_cell_length_a, get_cell_length_b, get_cell_length_c
