@@ -41,35 +41,20 @@ function parse_results(
 end
 
 
-function parse_results1(
+function parse_iso_results1(
     result_lines::Vector{S}, 
     keywords::Vector{String}
     ) where {S<:AbstractString}
     if length(result_lines) == 0
-        @warn "empty result."
-        return nothing
+        @warn "parse_iso_results1(): \nempty result."
+        return fill("",0,0)
     end
-    @inline rm_continue(lines) = String[l for l in lines if !occursin("RETURN",l) && all(!occursin(kw,l) for kw in keywords)]
+    @inline rm_continue(lines) = String[ l for l in lines for kw in keywords
+                                                if (!occursin("RETURN",l) 
+                                                    && all(!occursin(kw,l))) ]
     title     = result_lines[1]
     contents  = rm_continue(result_lines[2:end])
     return hcat( [SPLTS(l) for l ∈ contents if length(strip(l)) > 0]... ) |> transpose |> Matrix
-end
-
-##
-
-function parse_number(ns)
-    n = try
-        parse(Int64,ns)
-    catch
-        parse(Float64,ns)
-    end
-    return n
-end
-
-
-function parse_matrix(res)::Matrix
-    hcat( [parse_number.(split(r, ' ', keepempty=false)) 
-          for r ∈ res]...) |> transpose
 end
 
 ## ------------------------- recipies -----------------------------
@@ -114,7 +99,7 @@ function all_kvectors(
 
     s = iso(comms)
 
-    p = parse_results1(s, ["k vector", "k degree"])
+    p = parse_iso_results1(s, ["k vector", "k degree"])
 
     return Dict(p[k,1]=>(p[k,2],parse(Int,p[k,3])) for k = 1:size(p,1))
 end

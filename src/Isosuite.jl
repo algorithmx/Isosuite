@@ -34,6 +34,8 @@ module Isosuite
 
     export smodes, input_smodes, translate_smodes_result
 
+    include("parsers.jl")
+
     include("cif_op.jl")
     
     include("string_op.jl")
