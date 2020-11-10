@@ -3,7 +3,9 @@ ENV["ISOSUITE_FOLDER"] = "/home/dabajabaza/abinitio/iso/" ##!! change
 @inline decif(x) = first(SPLTD(x))
 
 fn = ARGS[1]
-println(fn)
+println(ispath(fn))
+println(isfile(fn))
+
 if !isfile(fn) && ispath(fn)
     files = readdir(fn)
     for f in files
