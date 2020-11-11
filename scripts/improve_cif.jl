@@ -1,11 +1,8 @@
-using Pkg
-Pkg.activate("/home/dabajabaza/jianguoyun/Workspace/Isosuite")
-
 using Isosuite
-ENV["ISOSUITE_FOLDER"] = "/home/dabajabaza/abinitio/iso/"
-@inline decif(x) = first(SPLTD(x))
+ENV["ISOSUITE_FOLDER"] = "/home/dabajabaza/abinitio/iso/" ##!! change
 
 fn = ARGS[1]
+
 if !isfile(fn) && isdir(fn)
     files = readdir(fn)
     for f in files
