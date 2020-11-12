@@ -159,11 +159,11 @@ get_cell_angle_gamma(cif) = get_Float(cif, "cell_angle_gamma")
 
 get_cell_params(cif) = get_number(  cif, 
                                     ["cell_length_a",
-                                        "cell_length_b",
-                                        "cell_length_c",
-                                        "cell_angle_alpha",
-                                        "cell_angle_beta",
-                                        "cell_angle_gamma",
+                                     "cell_length_b",
+                                     "cell_length_c",
+                                     "cell_angle_alpha",
+                                     "cell_angle_beta",
+                                     "cell_angle_gamma",
                                     ],
                                     parser=(x->parse(Float64,x))  )
                                                 
@@ -211,7 +211,6 @@ function abc_sortperm(
     cif;
     tol = 1e-6
     )::Vector{Int64}
-
     close(x,y) = abs(x-y) < tol
     params = get_cell_params(cif)
     abc = [params[1],params[2],params[3]]
@@ -374,4 +373,20 @@ function get_atom_frac_pos(
     pos_lines = SPLTS.(extract_atom_config(cif))
     return map(x->[x[id_type], pf(x[id_xyz]), pf(x[id_xyz+1]), pf(x[id_xyz+2])], pos_lines) |> sort
 end
+
+
+function download_cif(url::AbstractString, fn="")
+    outp_fn = length(fn)>0 ? fn : last(SPLTX(url, "/"))
+    try
+        run(`wget $url -O $outp_fn`)
+    catch
+        @warn "download_cif() :\nwget command exited with error."
+    end
+    return
+end
+
+
+download_cif_conventional(mp_number::Int) = download_cif("https://materialsproject.org/materials/mp-$(mp_number)/cif?type=conventional_standard&download=true", "mp-$(mp_number)")
+
+download_cif_primitive(mp_number::Int) = download_cif("https://materialsproject.org/materials/mp-$(mp_number)/cif?type=primitive&download=true", "mp-$(mp_number)")
 

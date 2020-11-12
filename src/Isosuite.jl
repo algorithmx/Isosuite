@@ -12,7 +12,8 @@ module Isosuite
 
     trslsh(l) = rstrip(l,['/'])
 
-    export SPLTN, SPLTS, SPLTS1, SPLTC, SPLTEQ, SPLTA, SPLTD, STRPRM, decif, write_to_file, ⇶, ⦿
+    export SPLTN, SPLTS, SPLTS1, SPLTC, SPLTEQ, SPLTA, SPLTD, STRPRM
+    export trim_comments_pound, decif, write_to_file, ⇶, ⦿
     
     export minimal_cif
 
@@ -25,14 +26,19 @@ module Isosuite
     export extract_atom_config, compute_chemical_formula_structural
     export swap_abc, swap_abc_by_perm
     export sort_atom_position_lines
+    export download_cif, download_cif_conventional, download_cif_primitive
 
     export iso, irrep_matrix, irrep_names, all_kvectors, all_elements
 
     export findsym, findsym_from_cif, findsym_cifinput, findsym_input, extract_space_group
     export extract_cif, extract_wyckoff, extract_atoms, atom_to_wyckoff
-    export generate_cif, improve_cif
+    export generate_cif, improve_cif, improve_cif__findsym_cifinput
 
     export smodes, input_smodes, translate_smodes_result
+
+    export QE_default_equivalent_settings_findsym, default_settings_findsym
+
+    include("SG_settings.jl")
 
     include("parsers.jl")
 

@@ -26,8 +26,10 @@ function findsym_input(
     TITLE,
     latticeParameters::Tuple,
     atomList::Vector;
+    SG_setting = default_settings_findsym,
     latticeTolerance = 0.00001,
     atomicPositionTolerance = 0.00001,
+    occupationTolerance = 0.0001
     )
     @assert all(length.(atomList).==4)
     @assert all(t<:AbstractString for t ∈ typeof.(first.(atomList)))
@@ -39,19 +41,27 @@ function findsym_input(
         "$(a_number(latticeTolerance))",
         "!atomicPositionTolerance",
         "$(a_number(atomicPositionTolerance))",
+        "!occupationTolerance",
+        "$(a_number(occupationTolerance))",
         "!latticeParameters",
         "$(six_numbers(latticeParameters))",
+    ]
+    l1 = [strip("!$a" * "\n" * b, ['\n',' ']) for (a,b) in SG_setting]
+    l2 = [
         "!atomCount",
         "$(length(atomList))",
         "!atomType",
         "$(atom_list(atomList))",
         "!atomPosition",
     ]
-    return join([l0; atom_pos(atomList)], "\n")
+    l3 = ["!atomOccupation",]
+    return join([ l0; l1; 
+                  l2; atom_pos(atomList); 
+                  l3; repeat(["1.000000000"],length(atomList))
+                ] |> STRPRM, "\n")
 end
 
 
-##!! TODO  modify tolerance lines
 # submit scripts to the program `findsym_cifinput`
 function findsym_from_cif(
     fn_cif::AbstractString;
@@ -59,6 +69,7 @@ function findsym_from_cif(
     pos_tol = 1e-5) 
     res0 = findsym_cifinput(fn_cif)
     ##!! TODO  modify tolerance lines below
+    ##!! TODO  modify conventions
     res1 = res0 |> STRPRM |> trim_comments_pound
     findsym(res1)
 end
@@ -66,17 +77,18 @@ end
 
 function generate_cif(
     title::AbstractString, 
-    scripts::Vector{S}
+    scripts::Vector{S};
     ) where {S<:AbstractString}
     cif_lines = scripts |> findsym |> extract_cif
-    @assert occursin("data_findsym-output", cif_lines[1])
-    cif_lines[1] = title
+    if length(strip(title))>0  cif_lines[1]=title  end
     return STRPRM(cif_lines)
 end
 
+
 generate_cif(title::AbstractString, script::AbstractString)  = generate_cif(title, SPLTN(script))
 
-function improve_cif(title::AbstractString, old_cif_fn::AbstractString)
+
+function improve_cif__findsym_cifinput(title::AbstractString, old_cif_fn::AbstractString)
     keep_info_kw = [
         "chemical_formula_structural",
         "chemical_formula_sum",
@@ -84,6 +96,42 @@ function improve_cif(title::AbstractString, old_cif_fn::AbstractString)
     title_line = (title=="") ? get_title_line(old_cif_fn) : title
     lines_to_keep = strip.(extract_kw(old_cif_fn, keep_info_kw))
     gen_cif_lines = generate_cif(title_line, findsym_cifinput(old_cif_fn))
+    pos = findfirst(x->occursin("cell_volume",x), gen_cif_lines)
+    if pos === nothing
+        @warn "improve_cif($title, \n$old_cif_fn) : \nOld lines not kept because kw _cell_volume not found."
+        return gen_cif_lines
+    else
+        return String[gen_cif_lines[1:pos]; lines_to_keep; gen_cif_lines[pos+1:end]]
+    end
+end
+
+
+##!! TODO enforce (some trial) symmetry BEFORE calling findsym
+function improve_cif(
+    title::AbstractString, 
+    old_cif_fn::AbstractString;
+    SG_setting = default_settings_findsym,
+    latticeTolerance = 0.00001,
+    atomicPositionTolerance = 0.00001,
+    occupationTolerance = 0.0001
+    )
+    keep_info_kw = [
+        "chemical_formula_structural",
+        "chemical_formula_sum",
+    ]
+    title_line = (title=="") ? get_title_line(old_cif_fn) : title
+    lines_to_keep = strip.(extract_kw(old_cif_fn, keep_info_kw))
+
+    input = findsym_input(  title_line,
+                            Tuple(get_cell_params(old_cif_fn)),
+                            get_atom_frac_pos(old_cif_fn);
+                            SG_setting = SG_setting,
+                            latticeTolerance = latticeTolerance,
+                            atomicPositionTolerance = atomicPositionTolerance,
+                            occupationTolerance = occupationTolerance  )
+
+    gen_cif_lines = generate_cif(title_line, input)
+    
     pos = findfirst(x->occursin("cell_volume",x), gen_cif_lines)
     if pos === nothing
         @warn "improve_cif($title, \n$old_cif_fn) : \nOld lines not kept because kw _cell_volume not found."
