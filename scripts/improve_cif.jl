@@ -1,13 +1,12 @@
-using Pkg
-Pkg.activate("/home/dabajabaza/jianguoyun/Workspace/Isosuite")
+#using Pkg
+#Pkg.activate("/home/dabajabaza/jianguoyun/Workspace/Isosuite")
 
 using Isosuite
 ENV["ISOSUITE_FOLDER"] = "/home/dabajabaza/abinitio/iso/" ##!! change
 
-#
+##
 
-#fn = ARGS[1]
-fn = "/home/dabajabaza/jianguoyun/Workspace/ScF3/materials/R-3c/"
+fn = ARGS[1]
 
 ##
 
