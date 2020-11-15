@@ -17,6 +17,14 @@ global const default_settings_findsym = [
     #use hexagonal axes.
 ]
 
+global const default_settings_iso = [
+"SETTING INTERNATIONAL ALL AXIS B",
+"SETTING INTERNATIONAL ALL CELL 1",
+"SETTING INTERNATIONAL ALL ORIGIN 2",
+"SETTING INTERNATIONAL ALL AXIS HEXAGONAL",
+#! ??? "orthorhombicAxes" => "abc",
+]
+
 # -------------------------------------------------
 #* QE PW reference
 #* https://www.quantum-espresso.org/Doc/INPUT_PW.html#rhombohedral
@@ -43,3 +51,12 @@ global const QE_default_equivalent_settings_findsym = [
     #use hexagonal axes.
 ]
 
+global const QE_default_equivalent_settings_iso = [
+"SETTING INTERNATIONAL ALL AXIS C",
+"SETTING INTERNATIONAL ALL CELL 1",
+"SETTING INTERNATIONAL ALL ORIGIN 1",
+"SETTING INTERNATIONAL ALL AXIS RHOMBOHEDRAL",
+#! ??? "orthorhombicAxes" => "abc",
+]
+
+# -------------------------------------------------

@@ -62,16 +62,17 @@ end
 function all_elements(
     parent::Int64;
     setting="MILLER-LOVE",
+    unitcell_setting=default_settings_iso
     )
 
-    comms = ["VALUE PARENT $parent",
-             "SETTING $setting",
-             "SHOW PARENT",
+    comms1= ["VALUE PARENT $parent",
+             "SETTING $setting",]
+    comms2= ["SHOW PARENT",
              "SHOW ELEMENTS",
              "DISPLAY PARENT",
              "QUIT"]
 
-    s = iso(comms)
+    s = iso([comms1; unitcell_setting; comms2])
 
     p = parse_results(s, ["Parent", "Elements"])
 
@@ -86,10 +87,11 @@ end
 function all_kvectors(
     parent::Int64;
     setting="MILLER-LOVE",
+    unitcell_setting=default_settings_iso
     )
-    comms = ["VALUE PARENT $parent",
-             "SETTING $setting",
-             "SHOW KPOINT",
+    comms1= ["VALUE PARENT $parent",
+             "SETTING $setting",]
+    comms2= ["SHOW KPOINT",
              "SHOW KDEGREE",
              "DISPLAY KPOINT",
              "\n",
@@ -97,7 +99,7 @@ function all_kvectors(
              "\n",
              "QUIT"]
 
-    s = iso(comms)
+    s = iso([comms1; unitcell_setting; comms2])
 
     p = parse_iso_results1(s, ["k vector", "k degree"])
 
@@ -109,16 +111,17 @@ function irrep_names(
     parent::Int64, 
     kpoint::String;
     setting="MILLER-LOVE",
+    unitcell_setting=default_settings_iso
     )
 
-    comms = ["VALUE PARENT $parent",
-             "SETTING $setting",
-             "VALUE KPOINT $kpoint",
+    comms1= ["VALUE PARENT $parent",
+             "SETTING $setting",]
+    comms2= ["VALUE KPOINT $kpoint",
              "SHOW IRREP",
              "DISPLAY IRREP",
              "QUIT"]
     
-    s = iso(comms)
+    s = iso([comms1; unitcell_setting; comms2])
 
     p = parse_results(s, ["Irrep"])
 
@@ -133,11 +136,12 @@ function irrep_matrix(
     ir::String,
     elem::String;
     setting="MILLER-LOVE",
+    unitcell_setting=default_settings_iso
     )
     
-    comms = ["VALUE PARENT $parent",
-             "SETTING $setting",
-             "VALUE IRREP $ir",
+    comms1= ["VALUE PARENT $parent",
+             "SETTING $setting",]
+    comms2= ["VALUE IRREP $ir",
              "VALUE ELEMENT $elem",
              "SHOW IRREP",
              "SHOW CHARACTER",
@@ -145,7 +149,7 @@ function irrep_matrix(
              "DISPLAY IRREP",
              "QUIT"]
     
-    s = iso(comms)
+    s = iso([comms1; unitcell_setting; comms2])
     
     p = parse_results(s, ["Irrep", "Element", "Char", "Matrix"])
 
