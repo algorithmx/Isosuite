@@ -83,7 +83,6 @@ function all_elements(
 end
 
 
-
 function all_kvectors(
     parent::Int64;
     setting="MILLER-LOVE",

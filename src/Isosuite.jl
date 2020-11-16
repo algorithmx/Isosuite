@@ -12,7 +12,7 @@ module Isosuite
 
     trslsh(l) = rstrip(l,['/'])
 
-    export SPLTN, SPLTS, SPLTS1, SPLTC, SPLTEQ, SPLTA, SPLTD, STRPRM
+    export SPLTX, SPLTN, SPLTS, SPLTS1, SPLTC, SPLTEQ, SPLTA, SPLTD, STRPRM
     export trim_comments_pound, decif, write_to_file, ⇶, ⦿
     
     export minimal_cif
@@ -37,6 +37,7 @@ module Isosuite
     export smodes, input_smodes, translate_smodes_result
 
     export QE_default_equivalent_settings_findsym, default_settings_findsym
+    export QE_default_equivalent_settings_iso, default_settings_iso
 
     include("SG_settings.jl")
 
