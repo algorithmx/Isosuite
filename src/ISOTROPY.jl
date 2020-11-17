@@ -85,10 +85,12 @@ end
 
 function all_kvectors(
     parent::Int64;
+    primitive_or_conventional="primitive",
     setting="MILLER-LOVE",
     unitcell_setting=default_settings_iso
     )
     comms1= ["VALUE PARENT $parent",
+             "LABEL VECTOR $(uppercase(primitive_or_conventional))",
              "SETTING $setting",]
     comms2= ["SHOW KPOINT",
              "SHOW KDEGREE",

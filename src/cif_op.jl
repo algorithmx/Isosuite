@@ -327,9 +327,9 @@ function download_cif(url::AbstractString, fn="")
 end
 
 
-download_cif_conventional(mp_number::Int) = download_cif("https://materialsproject.org/materials/mp-$(mp_number)/cif?type=conventional_standard&download=true", "mp-$(mp_number)")
+download_cif_conventional(mp_number::Int) = download_cif("https://materialsproject.org/materials/mp-$(mp_number)/cif?type=conventional_standard&download=true", "mp-$(mp_number).cif")
 
-download_cif_primitive(mp_number::Int) = download_cif("https://materialsproject.org/materials/mp-$(mp_number)/cif?type=primitive&download=true", "mp-$(mp_number)")
+download_cif_primitive(mp_number::Int) = download_cif("https://materialsproject.org/materials/mp-$(mp_number)/cif?type=primitive&download=true", "mp-$(mp_number).cif")
 
 function minimal_cif(
     title,
