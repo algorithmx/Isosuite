@@ -4,6 +4,7 @@
 
 module Isosuite
 
+    using LinearAlgebra
     using Printf
 
     if "ISOSUITE_FOLDER" ∉ keys(ENV)
