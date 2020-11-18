@@ -472,5 +472,7 @@ function supercell(
     )
     write_to_file(cif_enlarge, "tmp.cif")
     return cif_enlarge |> SPLTN
-    #return improve_cif("", "tmp.cif", SG_setting=SG_setting)
 end
+
+
+## ------------------------------------------------------------------

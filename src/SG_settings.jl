@@ -15,7 +15,13 @@ global const default_settings_findsym = [
     #"rhombohedralAxes" => "",
     #Use rhombohedral axes for R-centered hexagonal space groups.  The default is to
     #use hexagonal axes.
+    
+    ## COMSUBS CONVENTION
+    # monoclinic: unique axis b, cell choice 1
+    # rhombohedral: hexagonal axes
+    # origin choice 2 (point of inversion at origin)
 ]
+
 
 global const default_settings_iso = [
 "SETTING INTERNATIONAL ALL AXIS B",

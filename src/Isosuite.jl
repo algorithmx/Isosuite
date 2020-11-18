@@ -4,6 +4,8 @@
 
 module Isosuite
 
+    global const _Isosuite_package_root_ = pwd()
+
     using LinearAlgebra
     using Printf
 
@@ -44,6 +46,8 @@ module Isosuite
     export QE_default_equivalent_settings_findsym, default_settings_findsym
     export QE_default_equivalent_settings_iso, default_settings_iso
 
+    export WYCKPOS_TABLE
+
     include("SG_settings.jl")
 
     include("parsers.jl")
@@ -51,6 +55,8 @@ module Isosuite
     include("cif_op.jl")
     
     include("string_op.jl")
+
+    include("wyckpos.jl")
     
     include("submit.jl")
 

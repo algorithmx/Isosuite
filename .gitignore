@@ -1,4 +1,5 @@
 /paper
+/src/__pycache__
 *.cif
 *.log
 *.dat
