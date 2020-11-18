@@ -1,7 +1,7 @@
 function get_title_line(cif)
     cif_lines = ( (cif isa AbstractString) ? (isfile(cif) ? readlines(cif) : String[]) : cif ) |> STRPRM |> trim_comments_pound
     if length(cif_lines) == 0
-        @warn "get_title_line(): \nEmpty content."
+        @info "get_title_line(): \nEmpty content."
         return ""
     else
         return cif_lines[1]
@@ -28,7 +28,7 @@ function extract_all_kw(
 
     p = findall(x->occursin(kw,x), cif_lines)
     if p===nothing
-        @warn "extract_all_kw() : \n$kw not found."
+        @info "extract_all_kw() : \n$kw not found."
         return String[]
     else
         return cif_lines[sort(p)]
@@ -57,7 +57,7 @@ function extract_kw(
     
     p = findfirst(x->occursin(kw,x), cif_lines)
     if p===nothing
-        @warn "extract_kw() : \n$kw not found."
+        @info "extract_kw() : \n$kw not found."
         return ""
     else
         return cif_lines[p]
@@ -316,6 +316,8 @@ function get_atom_frac_pos(
 end
 
 
+## ---------------------------------------------------------
+
 function download_cif(url::AbstractString, fn="")
     outp_fn = length(fn)>0 ? fn : last(SPLTX(url, "/"))
     try
@@ -330,6 +332,10 @@ end
 download_cif_conventional(mp_number::Int) = download_cif("https://materialsproject.org/materials/mp-$(mp_number)/cif?type=conventional_standard&download=true", "mp-$(mp_number).cif")
 
 download_cif_primitive(mp_number::Int) = download_cif("https://materialsproject.org/materials/mp-$(mp_number)/cif?type=primitive&download=true", "mp-$(mp_number).cif")
+
+
+## ---------------------------------------------------------
+
 
 function minimal_cif(
     title,
@@ -347,7 +353,7 @@ function minimal_cif(
     _cell_angle_beta                       bbb
     _cell_angle_gamma                      ggg
     _space_group_name_H-M_alt              'P 1'
-    _space_group_IT_number                 1
+    _symmetry_Int_Tables_number            IIITTT
     
     loop_
     _space_group_symop_operation_xyz
@@ -366,13 +372,15 @@ function minimal_cif(
     #  U1     1.0     0.000000      0.000000      0.000000     Biso  1.000000 U
 
 
-    (AAA,BBB,CCC,alpha,beta,gamma) = latt_params
+    (AAA,BBB,CCC,alpha,beta,gamma) = latt_params[1:6]
+    IT = (length(latt_params)==7) ? latt_params[7] : 1
 
     str4(x) = (@sprintf "%8.4f" x)
     str5(x) = (@sprintf "%9.5f" x)
     rules = [   "TITLE" => title,
                 "AAA"=>str5(AAA), "BBB"=>str5(BBB), "CCC"=>str5(CCC), 
-                "aaa"=>str5(alpha), "bbb"=>str5(beta), "ggg"=>str5(gamma)  ]
+                "aaa"=>str5(alpha), "bbb"=>str5(beta), "ggg"=>str5(gamma),
+                "IIITTT"=>string(IT)  ]
 
     cif_str = __cif__
     for p in rules
@@ -389,3 +397,80 @@ function minimal_cif(
     return cif_str * ⦿(frac_lines)
 end
 
+
+## ---------------------------------------------------------
+
+
+function loop_sections(cif)
+    cif_lines = (cif isa Vector) ? cif : readlines(cif)
+    lpos0 = findall(x->occursin("loop_",x),cif_lines)
+    lpos1 = [[1]; lpos0]
+    lpos2 = [lpos0; length(cif_lines)+1]
+    return [cif_lines[a:b-1] for (a,b) in zip(lpos1,lpos2)]
+end
+
+
+function symmetry_operators(cif)
+    sect = loop_sections(cif)
+    symm = sect[first([i for i=1:length(sect) 
+                         if "_space_group_symop_operation_xyz" in sect[i] ])]
+    #ops = ["(x,y,z)->("*replace(x,r"^\d+\s+"=>"")*")" for x in symm if !occursin("_",x)]
+    ops = [replace(x,r"^\d+\s+"=>"") for x in symm if !occursin("_",x)]
+    # ep(x) = eval(Meta.parse(x))
+    return ops # .|> ep
+end
+
+
+function extend_positions(atom_list, symm_ops)
+    close(lst, p) = any([norm([l[2:4]...].-[p...])<1e-5 for l in lst])
+    mod1(l) = map(x->round(mod(x+2,1),digits=6), l)    
+    atms = unique(first.(atom_list))
+    ext_pos = []
+    for a in atms
+        ext_pos_a = []
+        apos = findall(x->x[1]==a, atom_list)
+        for p in apos
+            line = atom_list[p]
+            for sop in symm_ops
+                new_p = mod1( eval(Meta.parse("ft(x,y,z)=[$sop]; ft($(line[2]),$(line[3]),$(line[4]))")) )
+                if !close(ext_pos_a, new_p)
+                    push!(ext_pos_a, (line[1], new_p...))
+                end
+            end
+        end
+        ext_pos = [ext_pos; ext_pos_a]
+    end
+    return sort(ext_pos)
+end
+
+
+function supercell(
+    cif,
+    nnn;
+    SG_setting = default_settings_findsym
+    )
+    global symm_ops = symmetry_operators(cif)
+    atom_list = get_atom_frac_pos(cif)
+    atom_list_ext = extend_positions(atom_list, symm_ops)
+    atom_list_ext_enlarge = []
+    (nx, ny, nz) = nnn
+    for i=1:nx
+        for j=1:ny
+            for k=1:nz
+                for l in atom_list_ext
+                    push!(atom_list_ext_enlarge, (l[1], (l[2]+(i-1))/nx, (l[3]+(j-1))/ny, (l[4]+(k-1))/nz))
+                end
+            end
+        end
+    end
+    (a, b, c, alpha, beta, gamma) = get_cell_params(cif)
+    IT = get_symmetry_Int_Tables_number(cif)
+    cif_enlarge = minimal_cif(
+        get_title_line(cif) * " super cell ($nx, $ny, $nz)",
+        (nx*a, ny*b, nz*c, alpha, beta, gamma, IT),
+        atom_list_ext_enlarge
+    )
+    write_to_file(cif_enlarge, "tmp.cif")
+    return cif_enlarge |> SPLTN
+    #return improve_cif("", "tmp.cif", SG_setting=SG_setting)
+end

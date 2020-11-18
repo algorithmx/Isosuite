@@ -137,7 +137,7 @@ function improve_cif(
         @warn "improve_cif($title, \n$old_cif_fn) : \nOld lines not kept because kw _cell_volume not found."
         return gen_cif_lines
     else
-        return String[gen_cif_lines[1:pos]; lines_to_keep; gen_cif_lines[pos+1:end]]
+        return String[gen_cif_lines[1:pos]; lines_to_keep; gen_cif_lines[pos+1:end]] |> STRPRM
     end
 end
 

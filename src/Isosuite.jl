@@ -1,4 +1,4 @@
-ENV["ISOSUITE_FOLDER"] = "/home/dabajabaza/abinitio/iso/" ##!! modify this line first!!!
+#ENV["ISOSUITE_FOLDER"] = "/home/dabajabaza/abinitio/iso/" ##!! modify this line first!!!
 
 ## --------------------------------------------
 
@@ -11,6 +11,7 @@ module Isosuite
     end
 
     trslsh(l) = rstrip(l,['/'])
+    adslsh(l) = trslsh(l)*"/"
 
     export SPLTX, SPLTN, SPLTS, SPLTS1, SPLTC, SPLTEQ, SPLTA, SPLTD, STRPRM
     export trim_comments_pound, decif, write_to_file, ⇶, ⦿
@@ -27,6 +28,7 @@ module Isosuite
     export swap_abc, swap_abc_by_perm
     export sort_atom_position_lines
     export download_cif, download_cif_conventional, download_cif_primitive
+    export supercell, symmetry_operators, loop_sections
 
     export iso, irrep_matrix, irrep_names, all_kvectors, all_elements
 
@@ -35,6 +37,8 @@ module Isosuite
     export generate_cif, improve_cif, improve_cif__findsym_cifinput
 
     export smodes, input_smodes, translate_smodes_result
+
+    export comsubs
 
     export QE_default_equivalent_settings_findsym, default_settings_findsym
     export QE_default_equivalent_settings_iso, default_settings_iso

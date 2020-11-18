@@ -77,28 +77,34 @@ end
 
 # submit scripts to the program `iso`
 function iso(scripts::Vector{S}) where {S<:AbstractString}
-    ENV["ISODATA"] = "$(trslsh(ENV["ISOSUITE_FOLDER"]))/"
-    res = submit_script_lines(scripts, `$(trslsh(ENV["ISOSUITE_FOLDER"]))/./iso`, delims=['\n','*'])
+    ENV["ISODATA"] = adslsh(ENV["ISOSUITE_FOLDER"])
+    res = submit_script_lines(scripts, `$(adslsh(ENV["ISOSUITE_FOLDER"]))./iso`, delims=['\n','*'])
     return remove_welcome(res, 7)
 end
 
 # submit scripts to the program `smodes`
 function smodes(scripts::Vector{S}) where {S<:AbstractString}
-    ENV["ISODATA"] = "$(trslsh(ENV["ISOSUITE_FOLDER"]))/"
-    res = submit_script_lines( scripts, `$(trslsh(ENV["ISOSUITE_FOLDER"]))/./smodes` )
+    ENV["ISODATA"] = adslsh(ENV["ISOSUITE_FOLDER"])
+    res = submit_script_lines( scripts, `$(adslsh(ENV["ISOSUITE_FOLDER"]))./smodes` )
     return res
 end
 
 # submit scripts to the program `findsym`
 function findsym(scripts::Vector{S}) where {S<:AbstractString}
-    ENV["ISODATA"] = "$(trslsh(ENV["ISOSUITE_FOLDER"]))/"
-    res = run_program_with_tmp_in(scripts, `$(trslsh(ENV["ISOSUITE_FOLDER"]))/./findsym`)
+    ENV["ISODATA"] = adslsh(ENV["ISOSUITE_FOLDER"])
+    res = run_program_with_tmp_in(scripts, `$(adslsh(ENV["ISOSUITE_FOLDER"]))./findsym`)
     return remove_welcome(res,4)
 end
 
 function findsym_cifinput(fn_cif::AbstractString)
-    ENV["ISODATA"] = "$(trslsh(ENV["ISOSUITE_FOLDER"]))/"
-    res = run_program_with_file(fn_cif, `$(trslsh(ENV["ISOSUITE_FOLDER"]))/./findsym_cifinput`)
+    ENV["ISODATA"] = adslsh(ENV["ISOSUITE_FOLDER"])
+    res = run_program_with_file(fn_cif, `$(adslsh(ENV["ISOSUITE_FOLDER"]))./findsym_cifinput`)
+    return res
+end
+
+function comsubs(fn_cif::AbstractString)
+    ENV["ISODATA"] = adslsh(ENV["ISOSUITE_FOLDER"])
+    res = run_program_with_file(fn_cif, `$(adslsh(ENV["ISOSUITE_FOLDER"]))./comsubs`)
     return res
 end
 
