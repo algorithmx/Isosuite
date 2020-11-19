@@ -335,7 +335,12 @@ function symmetry_operators(cif)
         return ops
     end
     symm = sect[first(symm0)]
-    ops  = [replace(replace(x,r"^\d+\s+"=>""), r"\s+"=>"") for x in symm if !occursin("_",x)]
+    ops  = [replace(
+                replace(
+                    replace(x, r"^\d+\s+"=>""), 
+                    r"\s+"=>""), 
+                "'"=>""
+            ) for x in symm if !occursin("_",x)]
     return ops
 end # |> symm_ops
 
