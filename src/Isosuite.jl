@@ -41,7 +41,7 @@ module Isosuite
 
     export smodes, input_smodes, translate_smodes_result
 
-    export comsub_input
+    export comsubs_input
 
     export QE_default_equivalent_settings_findsym, default_settings_findsym
     export QE_default_equivalent_settings_iso, default_settings_iso
