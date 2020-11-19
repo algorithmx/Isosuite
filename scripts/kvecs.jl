@@ -1,9 +1,9 @@
+ENV["ISOSUITE_FOLDER"] = "/home/dabajabaza/abinitio/iso/"
 using Pkg
 Pkg.activate("/home/dabajabaza/jianguoyun/Workspace/Isosuite")
 using Isosuite
-using JLD2
-ENV["ISOSUITE_FOLDER"] = "/home/dabajabaza/abinitio/iso"
 
+using JLD2
 
 ##
 

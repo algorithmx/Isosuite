@@ -1,8 +1,7 @@
-#using Pkg
-#Pkg.activate("/home/dabajabaza/jianguoyun/Workspace/Isosuite")
-
+ENV["ISOSUITE_FOLDER"] = "/home/dabajabaza/abinitio/iso/"
+using Pkg
+Pkg.activate("/home/dabajabaza/jianguoyun/Workspace/Isosuite")
 using Isosuite
-ENV["ISOSUITE_FOLDER"] = "/home/dabajabaza/abinitio/iso/" ##!! change
 
 ##
 
