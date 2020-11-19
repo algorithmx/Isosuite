@@ -10,7 +10,7 @@ module Isosuite
     using Printf
 
     if "ISOSUITE_FOLDER" ∉ keys(ENV)
-        @warn "\"ISOSUITE_FOLDER\" ∉ keys(ENV) \nProgram folder not found in ENV variables.\nPlease define ENV[\"ISOSUITE_FOLDER\"]."
+        @warn "\"ISOSUITE_FOLDER\" ∉ keys(ENV) \nProgram folder not found in ENV variables.\nPlease assign the Isotropy Suite path to ENV[\"ISOSUITE_FOLDER\"].\nDon't forget the slash \"/\" at the end of the path."
     end
 
     trslsh(l) = rstrip(l,['/'])
@@ -41,7 +41,7 @@ module Isosuite
 
     export smodes, input_smodes, translate_smodes_result
 
-    export comsubs
+    export comsub_input
 
     export QE_default_equivalent_settings_findsym, default_settings_findsym
     export QE_default_equivalent_settings_iso, default_settings_iso
@@ -65,6 +65,8 @@ module Isosuite
     include("SMODES.jl")
 
     include("FINDSYM.jl")
+
+    include("COMSUBS.jl")
 
     # include("........jl")
 

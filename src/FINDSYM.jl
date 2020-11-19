@@ -121,10 +121,13 @@ function improve_cif(
     ]
     title_line = (title=="") ? get_title_line(old_cif_fn) : title
     lines_to_keep = strip.(extract_kw(old_cif_fn, keep_info_kw))
+    symm_ops = symmetry_operators(old_cif_fn)
+    atom_list = get_atom_frac_pos(old_cif_fn)
+    atom_list_ext = extend_positions(atom_list, symm_ops)
 
     input = findsym_input(  title_line,
                             Tuple(get_cell_params(old_cif_fn)),
-                            get_atom_frac_pos(old_cif_fn);
+                            atom_list_ext;   #! generate all from wyckoff
                             SG_setting = SG_setting,
                             latticeTolerance = latticeTolerance,
                             atomicPositionTolerance = atomicPositionTolerance,

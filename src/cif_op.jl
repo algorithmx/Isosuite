@@ -9,6 +9,16 @@ function get_title_line(cif)
 end
 
 
+function loop_sections(cif)
+    cif_lines = (cif isa Vector) ? cif : readlines(cif)
+    lpos0 = findall(x->occursin("loop_",x),cif_lines)
+    lpos1 = [[1]; lpos0]
+    lpos2 = [lpos0; length(cif_lines)+1]
+    return [cif_lines[a:b-1] |> STRPRM  for (a,b) in zip(lpos1,lpos2)]
+end
+
+
+
 function extract_all_kw(
     cif, 
     kw::Union{AbstractString,Regex}
@@ -313,6 +323,53 @@ function get_atom_frac_pos(
 
     pos_lines = SPLTS.(extract_atom_config(cif))
     return map(x->[x[id_type], pf(x[id_xyz]), pf(x[id_xyz+1]), pf(x[id_xyz+2])], pos_lines) |> sort
+end # |> atom_list
+
+
+function symmetry_operators(cif)
+    ops   = String[]
+    sect  = loop_sections(cif)
+    symm0 = [i for i=1:length(sect) if "_space_group_symop_operation_xyz" in sect[i]]
+    if length(symm0)==0
+        @info "symmetry_operators():\nNo symmetry operators found in cif."
+        return ops
+    end
+    symm = sect[first(symm0)]
+    ops  = [replace(replace(x,r"^\d+\s+"=>""), r"\s+"=>"") for x in symm if !occursin("_",x)]
+    return ops
+end # |> symm_ops
+
+
+function extend_positions(atom_list, symm_ops)
+    if length(symm_ops)==0
+        return atom_list
+    elseif length(symm_ops)==1
+        if symm_ops[1]=="x,y,z"
+            return atom_list
+        else
+            @error "extend_positions():\nWrong format of symmetry operators.\nGot len=1 with symm_ops[1]=$(symm_ops[1]).\nNo operation performed."
+            return atom_list
+        end
+    end
+    close(lst, p) = any([norm([l[2:4]...].-[p...])<1e-5 for l in lst])
+    mod1(l) = map(x->round(mod(x+2,1),digits=6), l)    
+    atms = unique(first.(atom_list))
+    ext_pos = []
+    for a in atms
+        ext_pos_a = []
+        apos = findall(x->x[1]==a, atom_list)
+        for p in apos
+            line = atom_list[p]
+            for sop in symm_ops
+                new_p = mod1( eval(Meta.parse("ft(x,y,z)=[$sop]; ft($(line[2]),$(line[3]),$(line[4]))")) )
+                if !close(ext_pos_a, new_p)
+                    push!(ext_pos_a, (line[1], new_p...))
+                end
+            end
+        end
+        ext_pos = [ext_pos; ext_pos_a]
+    end
+    return sort(ext_pos)
 end
 
 
@@ -401,55 +458,12 @@ end
 ## ---------------------------------------------------------
 
 
-function loop_sections(cif)
-    cif_lines = (cif isa Vector) ? cif : readlines(cif)
-    lpos0 = findall(x->occursin("loop_",x),cif_lines)
-    lpos1 = [[1]; lpos0]
-    lpos2 = [lpos0; length(cif_lines)+1]
-    return [cif_lines[a:b-1] for (a,b) in zip(lpos1,lpos2)]
-end
-
-
-function symmetry_operators(cif)
-    sect = loop_sections(cif)
-    symm = sect[first([i for i=1:length(sect) 
-                         if "_space_group_symop_operation_xyz" in sect[i] ])]
-    #ops = ["(x,y,z)->("*replace(x,r"^\d+\s+"=>"")*")" for x in symm if !occursin("_",x)]
-    ops = [replace(x,r"^\d+\s+"=>"") for x in symm if !occursin("_",x)]
-    # ep(x) = eval(Meta.parse(x))
-    return ops # .|> ep
-end
-
-
-function extend_positions(atom_list, symm_ops)
-    close(lst, p) = any([norm([l[2:4]...].-[p...])<1e-5 for l in lst])
-    mod1(l) = map(x->round(mod(x+2,1),digits=6), l)    
-    atms = unique(first.(atom_list))
-    ext_pos = []
-    for a in atms
-        ext_pos_a = []
-        apos = findall(x->x[1]==a, atom_list)
-        for p in apos
-            line = atom_list[p]
-            for sop in symm_ops
-                new_p = mod1( eval(Meta.parse("ft(x,y,z)=[$sop]; ft($(line[2]),$(line[3]),$(line[4]))")) )
-                if !close(ext_pos_a, new_p)
-                    push!(ext_pos_a, (line[1], new_p...))
-                end
-            end
-        end
-        ext_pos = [ext_pos; ext_pos_a]
-    end
-    return sort(ext_pos)
-end
-
-
 function supercell(
     cif,
     nnn;
     SG_setting = default_settings_findsym
     )
-    global symm_ops = symmetry_operators(cif)
+    symm_ops = symmetry_operators(cif)
     atom_list = get_atom_frac_pos(cif)
     atom_list_ext = extend_positions(atom_list, symm_ops)
     atom_list_ext_enlarge = []
