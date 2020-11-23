@@ -145,6 +145,10 @@ function extract_atom_config(
 end
 
 
+##! TODO deal with Fddd (UO3) a,c,-b
+function apply_space_group__transform_Pp_abc() end
+
+
 function compute_chemical_formula_structural(
     cif; 
     atom_type_pos=2, 
@@ -274,7 +278,6 @@ function swap_abc(
     return  swap_abc_by_perm(cif, abc_sortperm(cif), id_xyz=id_xyz, tol=tol)
 end
 
-#
 
 function sort_atom_position_lines(
     cif

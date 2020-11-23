@@ -1,8 +1,8 @@
 using Printf
 
-a_number(t) = (@sprintf "%10.8f" t)
+a_number(t) = (@sprintf "%12.8f" t)
 
-six_numbers(t) = (@sprintf "%8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f" t[1] t[2] t[3] t[4] t[5] t[6])
+six_numbers(t) = (@sprintf "%12.8f  %12.8f  %12.8f  %12.8f  %12.8f  %12.8f" t[1] t[2] t[3] t[4] t[5] t[6])
 
 three_numbers_from_4tuple(t) = (@sprintf "%12.8f  %12.8f  %12.8f" t[2] t[3] t[4])
 
@@ -65,12 +65,25 @@ end
 # submit scripts to the program `findsym_cifinput`
 function findsym_from_cif(
     fn_cif::AbstractString;
-    latt_tol = 1e-5,
-    pos_tol = 1e-5) 
+    SG_setting = default_settings_findsym,
+    latticeTolerance = 0.00001,
+    atomicPositionTolerance = 0.00001,
+    occupationTolerance = 0.0001
+    )
     res0 = findsym_cifinput(fn_cif)
-    ##!! TODO  modify tolerance lines below
-    ##!! TODO  modify conventions
     res1 = res0 |> STRPRM |> trim_comments_pound
+    p = findfirst(x->occursin("latticeTolerance",x), res1)
+    if p!==nothing
+        res1[p+1] = (@sprintf "%12.8f" latticeTolerance)
+    end
+    p = findfirst(x->occursin("atomicPositionTolerance",x), res1)
+    if p!==nothing
+        res1[p+1] = (@sprintf "%12.8f" atomicPositionTolerance)
+    end
+    p = findfirst(x->occursin("occupationTolerance",x), res1)
+    if p!==nothing
+        res1[p+1] = (@sprintf "%12.8f" occupationTolerance)
+    end
     findsym(res1)
 end
 
@@ -132,6 +145,9 @@ function improve_cif(
                             latticeTolerance = latticeTolerance,
                             atomicPositionTolerance = atomicPositionTolerance,
                             occupationTolerance = occupationTolerance  )
+    
+    @info "--------------------"
+    println.(input)
 
     gen_cif_lines = generate_cif(title_line, input)
     
