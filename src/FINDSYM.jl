@@ -71,6 +71,7 @@ function findsym_from_cif(
     occupationTolerance = 0.0001
     )
     res0 = findsym_cifinput(fn_cif)
+    @info "findsym_from_cif(): \nfindsym_cifinput() completed."
     res1 = res0 |> STRPRM |> trim_comments_pound
     p = findfirst(x->occursin("latticeTolerance",x), res1)
     if p!==nothing
@@ -84,6 +85,8 @@ function findsym_from_cif(
     if p!==nothing
         res1[p+1] = (@sprintf "%12.8f" occupationTolerance)
     end
+    @info "findsym_from_cif(): \nnow call findsym()."
+    println.(res1)
     findsym(res1)
 end
 
