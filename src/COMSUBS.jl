@@ -216,7 +216,7 @@ end
 
 function comsubs_output_cryst_to_cif(sect)
     dic = comsubs_output_subgroup(sect)
-    SG  = parse_number( dic["Common subgroup"] )
+    SG  = parse_number( SPLTS(dic["Common subgroup"])[1] )
 
     cif1 = minimal_cif( "comsubs output", 
                         Tuple(parse_6f(dic["Crystal 1"]["Lattice parameters"])...), 
