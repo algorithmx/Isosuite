@@ -42,7 +42,7 @@ module Isosuite
     export smodes, input_smodes, translate_smodes_result
 
     export comsubs_input, comsubs_output_section, comsubs_output_subgroup
-    export comsubs_output_issubgroup, comsubs_output_isfinished
+    export comsubs_output_issubgroup, comsubs_output_isfinished, comsubs_output_info
     export comsubs_output_scores, comsubs_output_min_score, comsubs_output_subgroup_score
 
     export QE_default_equivalent_settings_findsym, default_settings_findsym

@@ -152,3 +152,45 @@ function comsubs_output_min_score(
     )
     return first(comsubs_output_scores(res,score_func=score_func))
 end
+
+
+function comsubs_output_info(sect1)
+    p1 = findfirst(x->occursin("First crystal:",x), sect1)
+    p2 = findfirst(x->occursin("Second crystal:",x), sect1)
+    pm = findfirst(x->occursin("Minimum size of unit cell:",x), sect1)
+
+    dic = Dict()
+
+    cryst1 = Dict()
+    i = 1
+    for i=p1+1:p2-1
+        if !occursin(":",sect1[i])
+            break
+        end
+        (k,v) = split(sect1[i],":",keepempty=false)
+        cryst1[strip(k)] = strip(v)
+    end
+    cryst1["Wyckoff"] = sect1[i:p2-1]
+    dic["First crystal"] = cryst1
+
+    cryst2 = Dict()
+    i = 1
+    for i=p2+1:pm-1
+        if !occursin(":",sect1[i])
+            break
+        end
+        (k,v) = split(sect1[i],":",keepempty=false)
+        cryst2[strip(k)] = strip(v)
+    end
+    cryst2["Wyckoff"] = sect1[i:pm-1]
+    dic["Second crystal"] = cryst2
+
+    for i=pm+1:length(sect1)
+        if occursin(":",sect1[i])
+            (k,v) = split(sect1[i],":",keepempty=false)
+            dic[strip(k)] = strip(v)
+        end
+    end
+
+    return dic
+end
