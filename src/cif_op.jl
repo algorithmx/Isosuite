@@ -452,7 +452,7 @@ function minimal_cif(
         cif_str = replace(cif_str, p)
     end
 
-    @inline remove_num(s) = strip(replace(strip(s), r"\d+"=>""))
+    @inline remove_num(s) = strip(replace(strip(string(s)), r"\d+"=>""))
     frac_lines = String[]
     for (i,a) in enumerate(atom_frac_positions)
         line = (@sprintf  "%s  1.0   %9.5f   %9.5f  %9.5f  Biso  1.0   %s" a[1]*string(i) a[2]  a[3]  a[4] remove_num(a[1]))
