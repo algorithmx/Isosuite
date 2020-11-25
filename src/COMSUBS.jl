@@ -115,12 +115,16 @@ end
 
 @inline comsubs_output_isfinished(res) = (length(res)>0 && findfirst(x->occursin(r"done",x),res)!==nothing)
 
-function comsubs_output_subgroup_score(sg::Dict)
+function comsubs_output_subgroup_score(
+    sg::Dict; 
+    score_func=((strss3,sz2)->sum(abs.(strss3.-1))*(10max(sz2...)))
+    )
     stress = parse_3_float64(sg["Principal values of strain tensor"])
     min_d  = parse_number(sg["Nearest-neighbor distance along path"])
     size1  = parse_number(sg["Crystal 1"]["Size"])
     size2  = parse_number(sg["Crystal 2"]["Size"])
-    score = sum(abs.(stress.-1)) * (10max(size1,size2))
+    #! arbitrary wcoring function ....
+    score = score_func(stress,(size1,size2))
     return score
 end
 
