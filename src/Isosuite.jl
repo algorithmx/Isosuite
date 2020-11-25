@@ -42,11 +42,14 @@ module Isosuite
     export smodes, input_smodes, translate_smodes_result
 
     export comsubs_input, comsubs_output_section, comsubs_output_subgroup
+    export comsubs_output_issubgroup, comsubs_output_isfinished, common_subgroup_score
 
     export QE_default_equivalent_settings_findsym, default_settings_findsym
     export QE_default_equivalent_settings_iso, default_settings_iso
 
     export WYCKPOS_TABLE
+
+    export parse_number, parse_3_float64
 
     include("SG_settings.jl")
 

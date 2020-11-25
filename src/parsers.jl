@@ -12,3 +12,5 @@ function parse_matrix(res)::Matrix
     hcat( [parse_number.(split(r, ' ', keepempty=false)) 
           for r ∈ res]...) |> transpose
 end
+
+parse_3_float64(x) = (try parse.(Float64, split(strip(x)," ",keepempty=false)) catch _ Vector([NaN,NaN,NaN]) end)
