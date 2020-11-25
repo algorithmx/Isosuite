@@ -52,3 +52,59 @@ function comsubs_input(
         ];
     ]
 end
+
+
+function comsubs_output_section(res)
+    p = findall(x->occursin("------------",x),res)
+    if length(p)==0
+        @info "Program comsubs didn't finished."
+        return res
+    elseif length(p)==1
+        @info "Program comsubs didn't find any common subgroups."
+    end
+    ps = [1, (p.+1)...]
+    pe = [(p.-1)..., length(res)]
+    return Vector{String}[res[i:j] for (i,j) ∈ zip(ps,pe)]
+end
+
+
+function comsubs_output_subgroup(sect)
+    p1 = findfirst(x->occursin("Setting of crystal 1:",x), sect)
+    p2 = findfirst(x->occursin("Setting of crystal 2:",x), sect)
+    pm = findfirst(x->occursin("At midpoint:",x), sect)
+    
+    dic = Dict()
+    for i=1:p1-1
+        (k,v) = split(sect[i],":",keepempty=false)
+        dic[strip(k)] = strip(v)
+    end
+
+    cryst1 = Dict()
+    (k,v) = split(sect[p1+1],"=",keepempty=false)
+    cryst1[strip(k)] = strip(v)
+    for i=p1+2:p1+4
+        (k,v) = split(sect[i],":",keepempty=false)
+        cryst1[strip(k)] = strip(v)
+    end
+    cryst1["Wyckoff"] = sect[p1+5:p2-1]
+    dic["Crystal 1"] = cryst1
+
+    cryst2 = Dict()
+    (k,v) = split(sect[p2+1],"=",keepempty=false)
+    cryst2[strip(k)] = strip(v)
+    for i=p2+2:p2+4
+        (k,v) = split(sect[i],":",keepempty=false)
+        cryst2[strip(k)] = strip(v)
+    end
+    cryst2["Wyckoff"] = sect[p2+5:pm-1]
+    dic["Crystal 2"] = cryst2
+
+    crystm = Dict()
+    (k,v) = split(sect[pm+1],"=",keepempty=false)
+    crystm[strip(k)] = strip(v)
+    crystm["Wyckoff"] = sect[pm+2:end]
+    dic["Crystal m"] = crystm
+
+    return dic
+end
+
