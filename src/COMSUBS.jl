@@ -209,7 +209,7 @@ function comsubs_output_wyckoff_to_atomlist(wyckoff, SG)
         for op in ops
             code = join([wyckoff_params; op],"; ")
             pos = eval(Meta.parse(code))
-            push!(atom_list, (@sprintf "%s  %12.8f  %12.8f  %12.8f"  atom_symbol pos[1]  pos[2]  pos[3]))
+            push!(atom_list, (atom_symbol, pos[1], pos[2], pos[3]))
         end
     end
     return atom_list
