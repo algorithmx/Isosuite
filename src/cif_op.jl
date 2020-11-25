@@ -410,7 +410,6 @@ function minimal_cif(
 
     __cif__ = """TITLE
 
-    _chemical_name_common                  'TITLE'
     _cell_length_a                         AAA
     _cell_length_b                         BBB
     _cell_length_c                         CCC
