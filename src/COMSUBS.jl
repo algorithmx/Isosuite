@@ -129,17 +129,26 @@ function comsubs_output_subgroup_score(
 end
 
 
-function comsubs_output_scores(res::Vector)
+function comsubs_output_scores(
+    res::Vector;
+    score_func=((strss3,sz2)->sum(abs.(strss3.-1))*(10max(sz2...)))
+    )
     sect  = comsubs_output_section(res)
     subg  = [comsubs_output_subgroup(s) for s in sect if comsubs_output_issubgroup(s)]
     if length(subg)==0
         return []
     end
-    scores = sort( [(sg["Subgroup"], comsubs_output_subgroup_score(sg)) for sg in subg], by=last)
+    scores = sort( [(sg["Subgroup"], 
+                    comsubs_output_subgroup_score(sg, score_func=score_func)) 
+                    for sg in subg], 
+                    by=last)
     return scores
 end
 
 
-function comsubs_output_min_score(res)
-    return first(comsubs_output_scores(res))
+function comsubs_output_min_score(
+    res::Vector;
+    score_func=((strss3,sz2)->sum(abs.(strss3.-1))*(10max(sz2...)))
+    )
+    return first(comsubs_output_scores(res,score_func=score_func))
 end
