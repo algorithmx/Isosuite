@@ -58,7 +58,7 @@ function comsubs_output_section(res)
     p = findall(x->occursin("------------",x),res)
     if length(p)==0
         @info "Program comsubs didn't finished."
-        return res
+        return [res,]
     elseif length(p)==1
         @info "Program comsubs didn't find any common subgroups."
     end
@@ -74,7 +74,9 @@ function comsubs_output_subgroup(sect)
     pm = findfirst(x->occursin("At midpoint:",x), sect)
     
     dic = Dict()
-    for i=1:p1-1
+    dic["Subgroup"] = replace(sect[1], r"Subgroup\s+"=>"")
+
+    for i=2:p1-1
         (k,v) = split(sect[i],":",keepempty=false)
         dic[strip(k)] = strip(v)
     end
@@ -100,11 +102,10 @@ function comsubs_output_subgroup(sect)
     dic["Crystal 2"] = cryst2
 
     crystm = Dict()
-    (k,v) = split(sect[pm+1],"=",keepempty=false)
+    (k,v) = split(sect[pm+1],":",keepempty=false)
     crystm[strip(k)] = strip(v)
     crystm["Wyckoff"] = sect[pm+2:end]
     dic["Crystal m"] = crystm
 
     return dic
 end
-
