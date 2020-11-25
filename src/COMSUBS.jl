@@ -115,11 +115,27 @@ end
 
 @inline comsubs_output_isfinished(res) = (length(res)>0 && findfirst(x->occursin(r"done",x),res)!==nothing)
 
-function common_subgroup_score(sg)
+function comsubs_output_subgroup_score(sg::Dict)
     stress = parse_3_float64(sg["Principal values of strain tensor"])
     min_d  = parse_number(sg["Nearest-neighbor distance along path"])
     size1  = parse_number(sg["Crystal 1"]["Size"])
     size2  = parse_number(sg["Crystal 2"]["Size"])
     score = sum(abs.(stress.-1)) * (10max(size1,size2))
     return score
+end
+
+
+function comsubs_output_scores(res::Vector)
+    sect  = comsubs_output_section(res)
+    subg  = [comsubs_output_subgroup(s) for s in sect if comsubs_output_issubgroup(s)]
+    if length(subg)==0
+        return []
+    end
+    scores = sort( [(sg["Subgroup"], comsubs_output_subgroup_score(sg)) for sg in subg], by=last)
+    return scores
+end
+
+
+function comsubs_output_min_score(res)
+    return first(comsubs_output_scores(res))
 end
