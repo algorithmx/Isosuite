@@ -429,7 +429,6 @@ function minimal_cif_part1(
     _cell_angle_alpha                      aaa
     _cell_angle_beta                       bbb
     _cell_angle_gamma                      ggg
-    _space_group_name_H-M_alt              'P 1'
     _symmetry_Int_Tables_number            IIITTT\n"""
     #  U1     1.0     0.000000      0.000000      0.000000     U
     (AAA,BBB,CCC,alpha,beta,gamma) = latt_params[1:6]
@@ -528,14 +527,18 @@ function interpolate_cif(cif1, cif2)
     sec2 = loop_sections(cif2)
     @assert length(sec1)==length(sec2)==3
     @assert all(sec1[2].==sec2[2])
+    title1 = get_title_line(sec1[1])
+    title2 = get_title_line(sec2[1])
+
     params = map(   x->0.5*(x[1]+x[2]), 
                     zip(get_cell_params(sec1[1]),get_cell_params(sec2[1]))  )
+
     IT1 = get_symmetry_Int_Tables_number(sec1[1])
     IT2 = get_symmetry_Int_Tables_number(sec2[1])
     @assert IT1==IT2
-    latt_params = Tuple([params; IT1])
-    title1 = get_title_line(sec1[1])
-    title2 = get_title_line(sec2[1])
+
+    latt_params = Tuple((params..., IT1))
+
     function avg456(l1,l2)
         if l1==l2
             return l1
