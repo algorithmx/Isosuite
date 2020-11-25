@@ -88,7 +88,7 @@ function comsubs_output_subgroup(sect)
         (k,v) = split(sect[i],":",keepempty=false)
         cryst1[strip(k)] = strip(v)
     end
-    cryst1["Wyckoff"] = sect[p1+5:p2-1]
+    cryst1["Wyckoff"] = STRPRM(sect[p1+5:p2-1])
     dic["Crystal 1"] = cryst1
 
     cryst2 = Dict()
@@ -98,13 +98,13 @@ function comsubs_output_subgroup(sect)
         (k,v) = split(sect[i],":",keepempty=false)
         cryst2[strip(k)] = strip(v)
     end
-    cryst2["Wyckoff"] = sect[p2+5:pm-1]
+    cryst2["Wyckoff"] = STRPRM(sect[p2+5:pm-1])
     dic["Crystal 2"] = cryst2
 
     crystm = Dict()
     (k,v) = split(sect[pm+1],":",keepempty=false)
     crystm[strip(k)] = strip(v)
-    crystm["Wyckoff"] = sect[pm+2:end]
+    crystm["Wyckoff"] = STRPRM(sect[pm+2:end])
     dic["Crystal m"] = crystm
 
     return dic
@@ -170,7 +170,7 @@ function comsubs_output_info(sect1)
         (k,v) = split(sect1[i],":",keepempty=false)
         cryst1[strip(k)] = strip(v)
     end
-    cryst1["Wyckoff"] = sect1[i:p2-1]
+    cryst1["Wyckoff"] = STRPRM(sect1[i:p2-1])
     dic["First crystal"] = cryst1
 
     cryst2 = Dict()
@@ -182,7 +182,7 @@ function comsubs_output_info(sect1)
         (k,v) = split(sect1[i],":",keepempty=false)
         cryst2[strip(k)] = strip(v)
     end
-    cryst2["Wyckoff"] = sect1[i:pm-1]
+    cryst2["Wyckoff"] = STRPRM(sect1[i:pm-1])
     dic["Second crystal"] = cryst2
 
     for i=pm+1:length(sect1)
@@ -194,3 +194,42 @@ function comsubs_output_info(sect1)
 
     return dic
 end
+
+function comsubs_output_wyckoff_to_atomlist(wyckoff, SG)
+    W_SG = get_Wyckoff_all_std_setting(SG)
+    atom_list = []
+    for wline in wyckoff
+        wyck = SPLTS(replace(wline,r"\s+\=\s+"=>"="))
+        atom_symbol = wyck[1]
+        wyckoff_symbol = wyck[2]
+        wyckoff_params0 = length(wyck)==2 ? [] : wyck[3:end]
+        wyckoff_params = map(x->(replace(x,"\'"=>"")), wyckoff_params0)
+        ops = get_Wyckoff_ops_std_setting(SG, wyckoff_symbol, W_SG)
+        for op in ops
+            pos = eval(Meta.parse(join([wyckoff_params; op],"; ")))
+            push!(atom_list, (@sprintf "%s  %12.8f  %12.8f  %12.8f"  atom_symbol pos[1]  pos[2]  pos[3]))
+        end
+    end
+    return atom_list
+end
+
+
+function comsubs_output_cryst_to_cif(sect)
+    dic = comsubs_output_subgroup(sect)
+    SG  = parse_number( dic["Common subgroup"] )
+
+    cif1 = minimal_cif( "comsubs output", 
+                        Tuple(parse_6f(dic["Crystal 1"]["Lattice parameters"])...), 
+                        comsubs_output_wyckoff_to_atomlist(dic["Crystal 1"]["Wyckoff"], SG)  )
+
+    cif2 = minimal_cif( "comsubs output", 
+                        Tuple(parse_6f(dic["Crystal 2"]["Lattice parameters"])...), 
+                        comsubs_output_wyckoff_to_atomlist(dic["Crystal 2"]["Wyckoff"], SG)  )
+
+    cifm = minimal_cif( "comsubs output", 
+                        Tuple(parse_6f(dic["Crystal m"]["Lattice parameters"])...), 
+                        comsubs_output_wyckoff_to_atomlist(dic["Crystal m"]["Wyckoff"], SG)  )
+
+    return cif1, cif2, cifm
+end
+

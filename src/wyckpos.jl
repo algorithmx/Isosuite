@@ -2,6 +2,7 @@ using PyCall
 
 ## https://github.com/dkriegner/xrayutilities/blob/master/lib/xrayutilities/materials/wyckpos.py
 ## accessed 2020-nov-18
+
 py"""
 # This file is part of xrayutilities.
 #
@@ -9617,4 +9618,31 @@ wp = {'1': {'1a': (7, ('(x, y, z)', ), None)},
 ##
 
 global const WYCKPOS_TABLE = py"""wp"""
+
+##
+
+function get_Wyckoff_all_std_setting(SG::Int)
+    #* used by COMSUBS
+    # monoclinic: unique axis b, cell choice 1
+    # cell_choice = "1"
+    unique_axis = "b"
+    # rhombohedral: hexagonal axes
+    r_h = "H"
+    # origin choice 2 (point of inversion at origin)
+    origin_choice = "2"
+
+    k_WYCKPOS_TABLE = keys(WYCKPOS_TABLE)
+    k_SG = ["$SG", "$(SG):$(unique_axis)", "$(SG):$(r_h)", "$(SG):$(origin_choice)"]
+    i = first(collect(1:4)[map(x->(x in k_WYCKPOS_TABLE), k_SG)])
+    return WYCKPOS_TABLE[k_SG[i]]
+end
+
+function get_Wyckoff_ops_std_setting(SG::Int, a, dic)
+    k = first([x for x in keys(dic) if occursin(a,x)])
+    return dic[k][2]
+end
+
+function get_Wyckoff_ops_std_setting(SG::Int, a)
+    return get_Wyckoff_ops_std_setting(SG, a, get_Wyckoff_all_std_setting(SG))
+end
 

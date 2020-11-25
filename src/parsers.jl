@@ -13,4 +13,8 @@ function parse_matrix(res)::Matrix
           for r ∈ res]...) |> transpose
 end
 
-parse_3_float64(x) = (try parse.(Float64, split(strip(x)," ",keepempty=false)) catch _ Vector([NaN,NaN,NaN]) end)
+parse_n_float64(x,n) = (try parse.(Float64, split(strip(x)," ",keepempty=false)) catch _ Vector([NaN for i=1:n]) end)
+
+parse_3_float64(x) = parse_n_float64(x,3)
+
+parse_6f(x) = parse_n_float64(x,6)
