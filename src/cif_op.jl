@@ -550,7 +550,7 @@ function interpolate_cif(cif1, cif2)
     end
     sec_avg_3 = map(x->avg456(x[1],x[2]), zip(sec1[3],sec2[3]))
     return  (   minimal_cif_part1(title1*"__to__"*title2,latt_params) 
-            * ⦿(sec1[2]) * "\n" *
+            * ⦿(sec1[2]) * "\n"
             * ⦿(sec_avg_3)   )
 end
 
