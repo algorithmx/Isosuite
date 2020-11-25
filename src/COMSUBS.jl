@@ -206,7 +206,9 @@ function comsubs_output_wyckoff_to_atomlist(wyckoff, SG)
         wyckoff_params = map(x->(replace(x,"\'"=>"")), wyckoff_params0)
         ops = get_Wyckoff_ops_std_setting(SG, wyckoff_symbol, W_SG)
         for op in ops
-            pos = eval(Meta.parse(join([wyckoff_params; op],"; ")))
+            code = join([wyckoff_params; op],"; ")
+            @info "code = $code"
+            pos = eval(Meta.parse(code))
             push!(atom_list, (@sprintf "%s  %12.8f  %12.8f  %12.8f"  atom_symbol pos[1]  pos[2]  pos[3]))
         end
     end
