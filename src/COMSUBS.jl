@@ -219,15 +219,15 @@ function comsubs_output_cryst_to_cif(sect)
     SG  = parse_number( SPLTS(dic["Common subgroup"])[1] )
 
     cif1 = minimal_cif( "comsubs output", 
-                        Tuple((parse_6f(dic["Crystal 1"]["Lattice parameters"])...)), 
+                        Tuple([parse_6f(dic["Crystal 1"]["Lattice parameters"])...]), 
                         comsubs_output_wyckoff_to_atomlist(dic["Crystal 1"]["Wyckoff"], SG)  )
 
     cif2 = minimal_cif( "comsubs output", 
-                        Tuple((parse_6f(dic["Crystal 2"]["Lattice parameters"])...)), 
+                        Tuple([parse_6f(dic["Crystal 2"]["Lattice parameters"])...]), 
                         comsubs_output_wyckoff_to_atomlist(dic["Crystal 2"]["Wyckoff"], SG)  )
 
     cifm = minimal_cif( "comsubs output", 
-                        Tuple((parse_6f(dic["Crystal m"]["Lattice parameters"])...)), 
+                        Tuple([parse_6f(dic["Crystal m"]["Lattice parameters"])...]), 
                         comsubs_output_wyckoff_to_atomlist(dic["Crystal m"]["Wyckoff"], SG)  )
 
     return cif1, cif2, cifm
