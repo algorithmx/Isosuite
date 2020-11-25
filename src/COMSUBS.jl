@@ -199,7 +199,7 @@ function comsubs_output_wyckoff_to_atomlist(wyckoff, SG)
     W_SG = get_Wyckoff_all_std_setting(SG)
     atom_list = []
     for wline in wyckoff
-        wyck = SPLTS(replace(wline,r"\s*\=\s+"=>"=")) ##!! CAREFUUUL !!!
+        wyck = SPLTS(replace(replace(wline,r"\s*\=\s+"=>"="),","=>"")) ##!! CAREFUUUL !!!
         atom_symbol = wyck[1]
         wyckoff_symbol = wyck[2]
         wyckoff_params0 = length(wyck)==2 ? [] : wyck[3:end]
