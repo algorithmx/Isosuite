@@ -9615,11 +9615,10 @@ wp = {'1': {'1a': (7, ('(x, y, z)', ), None)},
 
 """
 
-##
+
 
 global const WYCKPOS_TABLE = py"""wp"""
 
-##
 
 function get_Wyckoff_all_std_setting(SG::Int)
     #* used by COMSUBS
@@ -9637,10 +9636,12 @@ function get_Wyckoff_all_std_setting(SG::Int)
     return WYCKPOS_TABLE[k_SG[i]]
 end
 
+
 function get_Wyckoff_ops_std_setting(SG::Int, a, dic)
     k = first([x for x in keys(dic) if occursin(a,x)])
     return dic[k][2]
 end
+
 
 function get_Wyckoff_ops_std_setting(SG::Int, a)
     return get_Wyckoff_ops_std_setting(SG, a, get_Wyckoff_all_std_setting(SG))

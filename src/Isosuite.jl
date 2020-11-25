@@ -44,6 +44,7 @@ module Isosuite
     export comsubs_input, comsubs_output_section, comsubs_output_subgroup
     export comsubs_output_issubgroup, comsubs_output_isfinished, comsubs_output_info
     export comsubs_output_scores, comsubs_output_min_score, comsubs_output_subgroup_score
+    export comsubs_output_cryst_to_cif
 
     export QE_default_equivalent_settings_findsym, default_settings_findsym
     export QE_default_equivalent_settings_iso, default_settings_iso
