@@ -196,42 +196,53 @@ function comsubs_output_info(sect1)
 end
 
 
-function comsubs_output_wyckoff_to_atomlist(wyckoff, SG)
+function comsubs_output_wyckoff_to_atomlist(wyckoff, SG::Int)
     W_SG = get_Wyckoff_all_std_setting(SG)
     atom_list = []
+    strip_brackets(s) = strip(s, ['(',')'])
+    @inline findxyz(l,op) = eval(Meta.parse(join([l; op],"; ")))
     for wline in wyckoff
-        wyck = SPLTS(replace(replace(wline,r"\s*\=\s+"=>"="),","=>"")) ##!! CAREFUUUL !!!
-        atom_symbol = wyck[1]
-        wyckoff_symbol = wyck[2]
+        wyck = SPLTS(replace(replace(wline,r"\s*\=\s+"=>"="),","=>" ")) ##!! CAREFUUUL !!!
+        atom_symbol     = wyck[1]
+        wyckoff_symbol  = wyck[2]
         wyckoff_params0 = length(wyck)==2 ? [] : wyck[3:end]
-        wyckoff_params = map(x->(replace(x,"\'"=>"")), wyckoff_params0)
-        ops = get_Wyckoff_ops_std_setting(SG, wyckoff_symbol, W_SG)
-        for op in ops
-            code = join([wyckoff_params; op],"; ")
-            pos = eval(Meta.parse(code))
-            push!(atom_list, (atom_symbol, pos[1], pos[2], pos[3]))
-        end
+        wyckoff_params  = map(x->(replace(x,"\'"=>"")), wyckoff_params0)
+        wyckoff_ops     = get_Wyckoff_ops_std_setting(SG, wyckoff_symbol, W_SG)
+        (x, y, z) = findxyz(wyckoff_params, wyckoff_ops[1])
+        # (@sprintf  "%s  %s  %s  %12.8f  %12.8f  %12.8f  1.00000"  a*string(i)  a  w  x  y  z)
+        #  O1  O  f 0.50000 0.00000 0.00000 1.00000
+        push!(atom_list, (atom_symbol, wyckoff_symbol, x, y, z))
     end
     return atom_list
 end
 
 
-function comsubs_output_cryst_to_cif(sect)
-    dic = comsubs_output_subgroup(sect)
+function comsubs_output_cryst_to_cif(dic::Dict)
     SG  = parse_number( SPLTS(dic["Common subgroup"])[1] )
+    @info "$SG"
+    strip_brackets(s) = strip(s, ['(',')'])
+    OPS = strip_brackets.(get_Wyckoff_ops_for_general_xyz_std_setting(SG))
 
-    cif1 = minimal_cif( "comsubs output", 
-                        Tuple([parse_6f(dic["Crystal 1"]["Lattice parameters"])...]), 
-                        comsubs_output_wyckoff_to_atomlist(dic["Crystal 1"]["Wyckoff"], SG)  )
+    cif1 = cif_with_symmetry_ops(   "comsubs output Crystal 1", 
+                                    Tuple([parse_6f(dic["Crystal 1"]["Lattice parameters"])..., SG]), 
+                                    comsubs_output_wyckoff_to_atomlist(dic["Crystal 1"]["Wyckoff"], SG),
+                                    OPS   )
 
-    cif2 = minimal_cif( "comsubs output", 
-                        Tuple([parse_6f(dic["Crystal 2"]["Lattice parameters"])...]), 
-                        comsubs_output_wyckoff_to_atomlist(dic["Crystal 2"]["Wyckoff"], SG)  )
+    cif2 = cif_with_symmetry_ops(   "comsubs output Crystal 2", 
+                                    Tuple([parse_6f(dic["Crystal 2"]["Lattice parameters"])..., SG]), 
+                                    comsubs_output_wyckoff_to_atomlist(dic["Crystal 2"]["Wyckoff"], SG),
+                                    OPS  )
 
-    cifm = minimal_cif( "comsubs output", 
-                        Tuple([parse_6f(dic["Crystal m"]["Lattice parameters"])...]), 
-                        comsubs_output_wyckoff_to_atomlist(dic["Crystal m"]["Wyckoff"], SG)  )
+    cifm = cif_with_symmetry_ops(   "comsubs output Crystal m", 
+                                    Tuple([parse_6f(dic["Crystal m"]["Lattice parameters"])..., SG]), 
+                                    comsubs_output_wyckoff_to_atomlist(dic["Crystal m"]["Wyckoff"], SG),
+                                    OPS  )
 
     return cif1, cif2, cifm
+end
+
+
+function comsubs_output_cryst_to_cif(sect::Vector{S}) where {S<:AbstractString}
+    comsubs_output_cryst_to_cif(comsubs_output_subgroup(sect))
 end
 

@@ -401,15 +401,28 @@ download_cif_primitive(mp_number::Int) = download_cif("https://materialsproject.
 
 ## ---------------------------------------------------------
 
+function fract_lines(atm_frac_pos)
+    @inline remove_num(s) = strip(replace(strip(string(s)), r"\d+"=>""))
+    flines = String[]
+    atms = unique(first.(atm_frac_pos))
+    for atm in atms
+        i = 1
+        for (a,x,y,z) in atm_frac_pos
+            if a==atm
+                line = (@sprintf  "%s  1.0   %12.8f   %12.8f  %12.8f  %s" a*string(i) x y z remove_num(a))
+                push!(flines, line)
+                i += 1
+            end
+        end
+    end
+    return flines
+end
 
-function minimal_cif(
+function minimal_cif_part1(
     title,
-    latt_params::Tuple,
-    atom_frac_positions::Vector
+    latt_params::Tuple
     )
-
     __cif__ = """TITLE
-
     _cell_length_a                         AAA
     _cell_length_b                         BBB
     _cell_length_c                         CCC
@@ -417,50 +430,127 @@ function minimal_cif(
     _cell_angle_beta                       bbb
     _cell_angle_gamma                      ggg
     _space_group_name_H-M_alt              'P 1'
-    _symmetry_Int_Tables_number            IIITTT
-    
-    loop_
+    _symmetry_Int_Tables_number            IIITTT\n"""
+    #  U1     1.0     0.000000      0.000000      0.000000     U
+    (AAA,BBB,CCC,alpha,beta,gamma) = latt_params[1:6]
+    IT = (length(latt_params)==7) ? latt_params[7] : 1
+    str8(x) = (@sprintf "%12.8f" x)
+    rules = [   "TITLE" => title,
+                "AAA"=>str8(AAA), "BBB"=>str8(BBB), "CCC"=>str8(CCC), 
+                "aaa"=>str8(alpha), "bbb"=>str8(beta), "ggg"=>str8(gamma),
+                "IIITTT"=>string(IT)  ]
+    cif_str = __cif__
+    for p in rules
+        cif_str = replace(cif_str, p)
+    end
+    return cif_str
+end
+
+
+function minimal_cif(
+    title,
+    latt_params::Tuple,
+    atom_frac_positions::Vector
+    )
+    part2 = """loop_
     _space_group_symop_operation_xyz
        'x, y, z'
-    
+
     loop_
     _atom_site_label
     _atom_site_occupancy
     _atom_site_fract_x
     _atom_site_fract_y
     _atom_site_fract_z
-    _atom_site_adp_type
-    _atom_site_B_iso_or_equiv
-    _atom_site_type_symbol
-    """
-    #  U1     1.0     0.000000      0.000000      0.000000     Biso  1.000000 U
-
-
-    (AAA,BBB,CCC,alpha,beta,gamma) = latt_params[1:6]
-    IT = (length(latt_params)==7) ? latt_params[7] : 1
-
-    str4(x) = (@sprintf "%8.4f" x)
-    str5(x) = (@sprintf "%9.5f" x)
-    rules = [   "TITLE" => title,
-                "AAA"=>str5(AAA), "BBB"=>str5(BBB), "CCC"=>str5(CCC), 
-                "aaa"=>str5(alpha), "bbb"=>str5(beta), "ggg"=>str5(gamma),
-                "IIITTT"=>string(IT)  ]
-
-    cif_str = __cif__
-    for p in rules
-        cif_str = replace(cif_str, p)
-    end
-
-    @inline remove_num(s) = strip(replace(strip(string(s)), r"\d+"=>""))
-    frac_lines = String[]
-    for (i,a) in enumerate(atom_frac_positions)
-        line = (@sprintf  "%s  1.0   %12.8f   %12.8f  %12.8f  Biso  1.0   %s" a[1]*string(i) a[2]  a[3]  a[4] remove_num(a[1]))
-        push!(frac_lines, line)
-    end
-
-    return cif_str * ⦿(frac_lines)
+    _atom_site_type_symbol\n"""
+    return (  minimal_cif_part1(title, latt_params) 
+            * part2 
+            * ⦿(fract_lines(atom_frac_positions)) )
 end
 
+## ---------------------------------------------------------
+
+function fract_wyckoff_lines(atm_wyck_frac_pos)
+    @inline remove_num(s) = strip(replace(strip(string(s)), r"\d+"=>""))
+    flines = String[]
+    atms = unique(first.(atm_wyck_frac_pos))
+    for atm in atms
+        i = 1
+        for (a, w, x,y,z) in atm_wyck_frac_pos
+            if a==atm
+                line = (@sprintf  "%s  %s  %s  %12.8f  %12.8f  %12.8f  1.00000"  a*string(i)  a  w  x  y  z)
+                push!(flines, line)
+                i += 1
+            end
+        end
+    end
+    return flines
+end
+
+
+function cif_with_symmetry_ops_part2(
+    symm_ops::Union{Vector,Tuple}
+    )
+    __cif__ = """loop_
+    _space_group_symop_operation_xyz
+    $(join(symm_ops,"\n"))\n"""
+    #  O1 O   f 0.50000 0.00000 0.00000 1.00000 
+    #  O2 O   j 0.42582 0.21575 0.25000 1.00000
+    #  W1 W   g 0.48384 0.00000 0.25000 1.00000
+    return __cif__
+end
+
+
+function cif_with_symmetry_ops(
+    title,
+    latt_params::Tuple,
+    atom_wyck_frac_positions::Vector,
+    symm_ops::Union{Vector,Tuple},
+    )
+    part3 = """loop_
+    _atom_site_label
+    _atom_site_type_symbol
+    _atom_site_Wyckoff_label
+    _atom_site_fract_x
+    _atom_site_fract_y
+    _atom_site_fract_z
+    _atom_site_occupancy\n"""
+    return (  minimal_cif_part1(title,latt_params) 
+            * cif_with_symmetry_ops_part2(symm_ops)
+            * part3 
+            * ⦿(fract_wyckoff_lines(atom_wyck_frac_positions)) )
+end
+
+## ---------------------------------------------------------
+
+function interpolate_cif(cif1, cif2)
+    sec1 = loop_sections(cif1)
+    sec2 = loop_sections(cif2)
+    @assert length(sec1)==length(sec2)==3
+    @assert all(sec1[2].==sec2[2])
+    params = map(   x->0.5*(x[1]+x[2]), 
+                    zip(get_cell_params(sec1[1]),get_cell_params(sec2[1]))  )
+    IT1 = get_symmetry_Int_Tables_number(sec1[1])
+    IT2 = get_symmetry_Int_Tables_number(sec2[1])
+    @assert IT1==IT2
+    latt_params = Tuple([params; IT1])
+    title1 = get_title_line(sec1[1])
+    title2 = get_title_line(sec2[1])
+    function avg456(l1,l2)
+        if l1==l2
+            return l1
+        end
+        p1 = SPLTS(l1)
+        p2 = SPLTS(l2)
+        n  = 0.5.* (parse_number.(p1[4:6]) .+ parse_number.(p2[4:6]))
+        return (@sprintf  "%s  %s  %s  %12.8f  %12.8f  %12.8f  1.00000" p1[1] p1[2] p1[3] n[1] n[2] n[3])
+    end
+    sec_avg_3 = map(x->avg456(x[1],x[2]), zip(sec1[3],sec2[3]))
+    #! TODO combine !
+    return [ minimal_cif_part1(title1*"__to__"*title2,latt_params);
+             sec1[2];
+             sec_avg_3 ]
+end
 
 ## ---------------------------------------------------------
 

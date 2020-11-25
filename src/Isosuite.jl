@@ -38,6 +38,7 @@ module Isosuite
     export findsym, findsym_from_cif, findsym_cifinput, findsym_input, extract_space_group
     export extract_cif, extract_wyckoff, extract_atoms, atom_to_wyckoff
     export generate_cif, improve_cif, improve_cif__findsym_cifinput
+    export interpolate_cif
 
     export smodes, input_smodes, translate_smodes_result
 
@@ -50,6 +51,9 @@ module Isosuite
     export QE_default_equivalent_settings_iso, default_settings_iso
 
     export WYCKPOS_TABLE
+    export get_Wyckoff_ops_for_general_xyz_std_setting
+    export get_Wyckoff_ops_std_setting
+    export get_Wyckoff_all_std_setting
 
     export parse_number, parse_3_float64
 

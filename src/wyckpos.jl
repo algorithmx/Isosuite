@@ -9615,7 +9615,7 @@ wp = {'1': {'1a': (7, ('(x, y, z)', ), None)},
 
 """
 
-
+###
 
 global const WYCKPOS_TABLE = py"""wp"""
 
@@ -9645,5 +9645,11 @@ end
 
 function get_Wyckoff_ops_std_setting(SG::Int, a)
     return get_Wyckoff_ops_std_setting(SG, a, get_Wyckoff_all_std_setting(SG))
+end
+
+
+function get_Wyckoff_ops_for_general_xyz_std_setting(SG::Int)
+    all_wycks = get_Wyckoff_all_std_setting(SG)
+    return first([v[2] for (k,v) in all_wycks if v[2][1]=="(x, y, z)"])
 end
 
