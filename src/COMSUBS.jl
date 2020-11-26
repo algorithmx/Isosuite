@@ -113,11 +113,21 @@ end
 
 @inline comsubs_output_issubgroup(sect) = (length(sect)>0 && occursin(r"Subgroup\s+\d+",sect[1]))
 
+
 @inline comsubs_output_isfinished(res) = (length(res)>0 && findfirst(x->occursin(r"done",x),res)!==nothing)
+
+
+comsubs_output_subgroups(res) = [   comsubs_output_subgroup(s) 
+                                        for s in comsubs_output_section(res) 
+                                            if comsubs_output_issubgroup(s)    ]
+
+
+default_score_function = ((stress3,size2)->sum(abs.(stress3.-1))*(10max(size2...)))
+
 
 function comsubs_output_subgroup_score(
     sg::Dict; 
-    score_func=((strss3,sz2)->sum(abs.(strss3.-1))*(10max(sz2...)))
+    score_func=default_score_function
     )
     stress = parse_3_float64(sg["Principal values of strain tensor"])
     min_d  = parse_number(sg["Nearest-neighbor distance along path"])
@@ -129,32 +139,33 @@ function comsubs_output_subgroup_score(
 end
 
 
-function comsubs_output_scores(
-    res::Vector;
-    score_func=((strss3,sz2)->sum(abs.(strss3.-1))*(10max(sz2...)))
-    )
-    sect  = comsubs_output_section(res)
-    subg  = [comsubs_output_subgroup(s) for s in sect if comsubs_output_issubgroup(s)]
-    if length(subg)==0
-        return []
-    end
-    scores = sort( [(sg["Subgroup"], 
-                    comsubs_output_subgroup_score(sg, score_func=score_func)) 
-                    for sg in subg], 
-                    by=last)
-    return scores
+function comsubs_output_subgroup_scores(
+    subg::Vector{D};
+    score_func=default_score_function
+    ) where { D<:Dict }
+    return [comsubs_output_subgroup_score(x, score_func=score_func) for x in subg]
+end
+
+
+function comsubs_output_subgroup_scores(
+    res::Vector{S};
+    score_func=default_score_function
+    ) where { S<:AbstractString }
+    subg = comsubs_output_subgroups(res)
+    comsubs_output_subgroup_scores(subg, score_func=score_func)
 end
 
 
 function comsubs_output_min_score(
-    res::Vector;
-    score_func=((strss3,sz2)->sum(abs.(strss3.-1))*(10max(sz2...)))
+    subg_or_res;
+    score_func=default_score_function
     )
-    return first(comsubs_output_scores(res,score_func=score_func))
+    return minimum(comsubs_output_subgroup_scores(subg_or_res, score_func=score_func))
 end
 
 
-function comsubs_output_info(sect1)
+function comsubs_output_info(res)
+    sect1 = first(comsubs_output_section(res))
     p1 = findfirst(x->occursin("First crystal:",x), sect1)
     p2 = findfirst(x->occursin("Second crystal:",x), sect1)
     pm = findfirst(x->occursin("Minimum size of unit cell:",x), sect1)
@@ -218,24 +229,25 @@ end
 
 
 function comsubs_output_cryst_to_cif(dic::Dict)
+    ID  = dic["Subgroup"]
     SG  = parse_number( SPLTS(dic["Common subgroup"])[1] )
     strip_brackets(s) = strip(s, ['(',')'])
     OPS = strip_brackets.(get_Wyckoff_ops_for_general_xyz_std_setting(SG))
 
-    cif1 = cif_with_symmetry_ops(   "comsubs output Crystal 1", 
+    cif1 = cif_with_symmetry_ops(   "[COMSUBS output] Subgroup $ID Crystal 1", 
                                     Tuple((parse_6f(dic["Crystal 1"]["Lattice parameters"])..., SG)), 
                                     comsubs_output_wyckoff_to_atomlist(dic["Crystal 1"]["Wyckoff"], SG),
-                                    OPS   )
+                                    OPS    )
 
-    cif2 = cif_with_symmetry_ops(   "comsubs output Crystal 2", 
+    cif2 = cif_with_symmetry_ops(   "[COMSUBS output] Subgroup $ID Crystal 2", 
                                     Tuple((parse_6f(dic["Crystal 2"]["Lattice parameters"])..., SG)), 
                                     comsubs_output_wyckoff_to_atomlist(dic["Crystal 2"]["Wyckoff"], SG),
-                                    OPS  )
+                                    OPS    )
 
-    cifm = cif_with_symmetry_ops(   "comsubs output Crystal m", 
+    cifm = cif_with_symmetry_ops(   "[COMSUBS output] Subgroup $ID Crystal m", 
                                     Tuple((parse_6f(dic["Crystal m"]["Lattice parameters"])..., SG)), 
                                     comsubs_output_wyckoff_to_atomlist(dic["Crystal m"]["Wyckoff"], SG),
-                                    OPS  )
+                                    OPS    )
 
     return cif1, cif2, cifm
 end
@@ -245,3 +257,58 @@ function comsubs_output_cryst_to_cif(sect::Vector{S}) where {S<:AbstractString}
     comsubs_output_cryst_to_cif(comsubs_output_subgroup(sect))
 end
 
+
+function comsubs_output_low_score_subgroups_to_cif(
+    res, 
+    out_fd::String, 
+    max_score::Float64, 
+    score_func=((strss3,sz2)->sum(abs.(strss3.-1))*(10max(sz2...)))
+    )
+    subgroups = comsubs_output_subgroups(res)
+    scores    = comsubs_output_subgroup_scores(subgroups, score_func=score_func)
+    maxs      = (max_score>1e-5) ? max_score : minimum(scores)+1e-5
+    fd = rstrip(out_fd,"/")
+    for (i, x) in enumerate(zip(subgroups,scores))
+        (sg, n) = x
+        if n < maxs
+            (c1,c2,cm) = comsubs_output_cryst_to_cif(sg)
+            c1 ⇶ "$fd/sub.$(i).1.cif"
+            c2 ⇶ "$fd/sub.$(i).2.cif"
+            cm ⇶ "$fd/sub.$(i).m.cif"
+        end
+    end
+    return
+end
+
+
+function comsubs_output_path_cifs(comsubs_res_fn; mid_points=[0.5,])
+    closef(f1,f2) = abs(f1-f2)<1e-4
+    res  = readlines(comsubs_res_fn)
+    subgroups = comsubs_output_subgroups(res)
+    scores    = comsubs_output_subgroup_scores(subgroups)
+    commsg    = [strip(sg["Common subgroup"]) for sg in subgroups]
+    commsg_unique = unique(commsg)
+    commsg_minscore = [ sort(   [(sg,csg,sc)
+                                    for (sg,csg,sc) in zip(subgroups,commsg,scores) 
+                                        if csg==csg0], by = last   ) |> first
+                        for csg0 in commsg_unique ]
+    # for each representatives
+    all_cifs = []
+    for (sg,csg,sc) in commsg_minscore
+        (c1,c2,cm) = comsubs_output_cryst_to_cif(sg)
+        cifs = [(cm, 0.5), ]
+        for λk in mid_points
+            if closef(λk,1//2)
+                nothing
+            elseif λk>1//2+5e-5
+                cx = interpolate_cif(SPLTN(cm), SPLTN(c2), λ=2*(λk-1//2))
+                push!(cifs, (cx,λk))
+            else
+                cx = interpolate_cif(SPLTN(c1), SPLTN(cm), λ=2*(λk-0//2))
+                push!(cifs, (cx,λk))
+            end
+        end
+        push!(all_cifs, (csg, cifs))
+    end
+    return all_cifs
+end

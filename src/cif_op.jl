@@ -522,15 +522,16 @@ end
 
 ## ---------------------------------------------------------
 
-function interpolate_cif(cif1, cif2)
+function interpolate_cif(cif1, cif2; λ=0.5)
     sec1 = loop_sections(cif1)
     sec2 = loop_sections(cif2)
     @assert length(sec1)==length(sec2)==3
     @assert all(sec1[2].==sec2[2])
     title1 = get_title_line(sec1[1])
     title2 = get_title_line(sec2[1])
+    title_n = ("$(round(1-λ,digits=4)) x (" * title1 * ") + $(round(λ,digits=4)) x (" * title2 * ")")
 
-    params = map(   x->0.5*(x[1]+x[2]), 
+    params = map(   x->((1-λ)*x[1]+λ*x[2]), 
                     zip(get_cell_params(sec1[1]),get_cell_params(sec2[1]))  )
 
     IT1 = get_symmetry_Int_Tables_number(sec1[1])
@@ -539,17 +540,17 @@ function interpolate_cif(cif1, cif2)
 
     latt_params = Tuple((params..., IT1))
 
-    function avg456(l1,l2)
+    function avg456(l1,l2,λ0)
         if l1==l2
             return l1
         end
         p1 = SPLTS(l1)
         p2 = SPLTS(l2)
-        n  = 0.5.* (parse_number.(p1[4:6]) .+ parse_number.(p2[4:6]))
+        n  = ((1-λ0).*parse_number.(p1[4:6])  .+  λ0.*parse_number.(p2[4:6]))
         return (@sprintf  "%s  %s  %s  %12.8f  %12.8f  %12.8f  1.00000" p1[1] p1[2] p1[3] n[1] n[2] n[3])
     end
-    sec_avg_3 = map(x->avg456(x[1],x[2]), zip(sec1[3],sec2[3]))
-    return  (   minimal_cif_part1(title1*"__to__"*title2,latt_params) 
+    sec_avg_3 = map(x->avg456(x[1],x[2],λ), zip(sec1[3],sec2[3]))
+    return  (   minimal_cif_part1(title_n,latt_params) 
             * ⦿(sec1[2]) * "\n"
             * ⦿(sec_avg_3)   )
 end
