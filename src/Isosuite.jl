@@ -57,6 +57,7 @@ module Isosuite
     export get_Wyckoff_ops_for_general_xyz_std_setting
     export get_Wyckoff_ops_std_setting
     export get_Wyckoff_all_std_setting
+    export has_wyck, Wyckoff_params
 
     export parse_number, parse_3_float64
 

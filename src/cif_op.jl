@@ -320,7 +320,7 @@ function sort_atom_position_lines(
     id_label = findfirst(x->occursin("_atom_site_label",x), _atom_site_)
 
     # local functions
-    @inline pf(s) = (abs(parse(Float64,s)<1e-8) ? 0.0 : parse(Float64,s)) 
+    @inline pf(s) = (abs(parse(Float64,s))<1e-8 ? 0.0 : parse(Float64,s))
     num2str(x) = (@sprintf "%10.6f" x)
     @inline correct_sign(x) = String[x[1:id_xyz-1]; num2str.(pf.(x[id_xyz:id_xyz+2])) ; x[id_xyz+3:end]]
     sortbyxyz(V) = V[sortperm(V,by=x->x[id_xyz:id_xyz+2])]
@@ -352,11 +352,36 @@ function get_atom_frac_pos(
     id_type  = findfirst(x->occursin("_atom_site_type_symbol",x), _atom_site_)
 
     # local functions
-    @inline pf(s) = (abs(parse(Float64,s)<1e-10) ? 0.0 : parse(Float64,s)) 
+    @inline pf(s) = (abs(parse(Float64,s))<1e-10 ? 0.0 : parse(Float64,s)) 
 
     pos_lines = SPLTS.(extract_atom_config(cif))
     return map(x->[x[id_type], pf(x[id_xyz]), pf(x[id_xyz+1]), pf(x[id_xyz+2])], pos_lines) |> sort
 end # |> atom_list
+
+
+
+function get_atom_frac_pos_with_wyckoff(
+    cif
+    )
+    IT = get_symmetry_Int_Tables_number(cif)
+    # section _atom_site_ from cif
+    _atom_site_ = extract_all_kw(cif, "_atom_site_")
+    id_xyz = findfirst(x->occursin("_atom_site_fract_x",x), _atom_site_)
+    @assert findfirst(x->occursin("_atom_site_fract_z",x), _atom_site_) == id_xyz+2
+    id_type  = findfirst(x->occursin("_atom_site_type_symbol",x), _atom_site_)
+    wyck_sb  = findfirst(x->occursin("_atom_site_Wyckoff_label",x), _atom_site_)
+    # local functions
+    pf(s) = (abs(parse(Float64,s))<1e-10 ? 0.0 : parse(Float64,s))
+    mult(y) = first([k for k in keys(get_Wyckoff_all_std_setting(IT)) if occursin(y,k)])
+
+    pos_lines = SPLTS.(extract_atom_config(cif))
+    return map(x->[ x[id_type], 
+                    mult(x[wyck_sb]), 
+                    ([pf(x[id_xyz]), pf(x[id_xyz+1]), pf(x[id_xyz+2])][Wyckoff_params(x[wyck_sb],IT)])...], 
+                pos_lines
+    ) |> sort
+end # |> atom_list
+
 
 
 function symmetry_operators(cif)

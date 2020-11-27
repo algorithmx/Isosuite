@@ -9653,3 +9653,16 @@ function get_Wyckoff_ops_for_general_xyz_std_setting(SG::Int)
     return first([v[2] for (k,v) in all_wycks if v[2][1]=="(x, y, z)"])
 end
 
+
+function has_wyck(cif)
+    cif_lines = (cif isa AbstractString) ? readlines(cif) : cif
+    findfirst(x->occursin("_atom_site_Wyckoff_label",x), cif_lines)===nothing
+end
+
+
+function Wyckoff_params(w,SG)
+    wdic = get_Wyckoff_all_std_setting(SG)
+    ops = first([v for (k,v) in wdic if occursin(w,k)])
+    return [1,2,3][[occursin("x",ops[1]), occursin("y",ops[1]), occursin("z",ops[1])]]
+end
+
