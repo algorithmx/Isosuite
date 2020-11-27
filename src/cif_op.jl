@@ -87,11 +87,11 @@ function set_line_kw!(cif_lines::Vector{S}, rule) where { S<:AbstractString }
         @info "set_line_kw():\n$(kw) not found in cif."
         return cif_lines
     else
-        k_v = SPLTS(cif_lines[p])
-        if length(k_v)==1
+        if (kw isa Integer)
             cif_lines[p] = val
         else
-            cif_lines[p] = k_v[1] * "  " * val
+            (k,v) = SPLTS(cif_lines[p])
+            cif_lines[p] = k * "  " * val
         end
         return cif_lines
     end
@@ -520,9 +520,10 @@ end
 function cif_with_symmetry_ops_part2(
     symm_ops::Union{Vector,Tuple}
     )
+    rm_spaces(x) = replace(x,r"\s+"=>"")
     __cif__ = """loop_
     _space_group_symop_operation_xyz
-    $(join(symm_ops,"\n"))\n"""
+    $(join(rm_spaces.(symm_ops),"\n"))\n"""
     #  O1 O   f 0.50000 0.00000 0.00000 1.00000 
     #  O2 O   j 0.42582 0.21575 0.25000 1.00000
     #  W1 W   g 0.48384 0.00000 0.25000 1.00000
