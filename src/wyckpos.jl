@@ -9661,8 +9661,8 @@ end
 
 
 function Wyckoff_params(w,SG)
-    wdic = get_Wyckoff_all_std_setting(SG)
-    ops = first([v for (k,v) in wdic if occursin(w,k)])
+    wdic = Isosuite.get_Wyckoff_all_std_setting(SG)
+    ops = first([v[2] for (k,v) in wdic if occursin(w,k)])
+    println(ops)
     return [1,2,3][[occursin("x",ops[1]), occursin("y",ops[1]), occursin("z",ops[1])]]
 end
-

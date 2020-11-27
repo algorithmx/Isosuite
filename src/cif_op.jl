@@ -372,7 +372,7 @@ function get_atom_frac_pos_with_wyckoff(
     wyck_sb  = findfirst(x->occursin("_atom_site_Wyckoff_label",x), _atom_site_)
     # local functions
     pf(s) = (abs(parse(Float64,s))<1e-10 ? 0.0 : parse(Float64,s))
-    mult(y) = first([k for k in keys(get_Wyckoff_all_std_setting(IT)) if occursin(y,k)])
+    mult(y) = first([k for k in keys(Isosuite.get_Wyckoff_all_std_setting(IT)) if occursin(y,k)])
 
     pos_lines = SPLTS.(extract_atom_config(cif))
     return map(x->[ x[id_type], 
@@ -381,6 +381,7 @@ function get_atom_frac_pos_with_wyckoff(
                 pos_lines
     ) |> sort
 end # |> atom_list
+
 
 
 
