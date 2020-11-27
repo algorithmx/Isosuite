@@ -32,6 +32,7 @@ module Isosuite
     export sort_atom_position_lines
     export download_cif, download_cif_conventional, download_cif_primitive
     export supercell, symmetry_operators, loop_sections
+    export set_cif_title!, set_line_kw!
 
     export iso, irrep_matrix, irrep_names, all_kvectors, all_elements
 

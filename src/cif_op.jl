@@ -74,7 +74,37 @@ function extract_kw(
     end
 end
 
+
 extract_kw(cif,kw::AbstractVector) = [extract_kw(cif,k) for k in kw]
+
+
+
+function set_line_kw!(cif_lines::Vector{S}, rule) where { S<:AbstractString }
+    (kw, val) = rule
+    n_comments = findfirst(x->first(x)!=='#',cif_lines)-1
+    p = (kw isa Integer) ? n_comments+kw : findfirst(x->occursin(kw,x),cif_lines)
+    if p===nothing
+        @info "set_line_kw():\n$(kw) not found in cif."
+        return cif_lines
+    else
+        k_v = SPLTS(cif_lines[p])
+        if length(k_v)==1
+            cif_lines[p] = val
+        else
+            cif_lines[p] = k_v[1] * "  " * val
+        end
+        return cif_lines
+    end
+end
+
+
+function set_line_kw!(cif_fn::AbstractString, rule)
+    cif_lines = readlines(cif_fn)
+    set_line_kw!(cif_lines, rule) ⇶ cif_fn
+end
+
+
+set_cif_title!(cif_fn, title) = set_line_kw!(cif_fn, 1=>title)
 
 
 function get_number(cif, kw::AbstractString; default=0.0, parser=(x->parse(Float64,x)))
