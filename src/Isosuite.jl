@@ -33,6 +33,7 @@ module Isosuite
     export download_cif, download_cif_conventional, download_cif_primitive
     export supercell, symmetry_operators, loop_sections
     export set_cif_title!, set_line_kw!
+    export get_atom_frac_pos_with_wyckoff, has_wyck
 
     export iso, irrep_matrix, irrep_names, all_kvectors, all_elements
 
@@ -57,7 +58,7 @@ module Isosuite
     export get_Wyckoff_ops_for_general_xyz_std_setting
     export get_Wyckoff_ops_std_setting
     export get_Wyckoff_all_std_setting
-    export has_wyck, Wyckoff_params
+    export Wyckoff_params
 
     export parse_number, parse_3_float64
 

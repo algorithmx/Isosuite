@@ -359,10 +359,16 @@ function get_atom_frac_pos(
 end # |> atom_list
 
 
+function has_wyck(cif)
+    cif_lines = (cif isa AbstractString) ? readlines(cif) : cif
+    findfirst(x->occursin("_atom_site_Wyckoff_label",x), cif_lines)!==nothing
+end
+
 
 function get_atom_frac_pos_with_wyckoff(
     cif
     )
+    @assert has_wyck(cif)
     IT = get_symmetry_Int_Tables_number(cif)
     # section _atom_site_ from cif
     _atom_site_ = extract_all_kw(cif, "_atom_site_")
