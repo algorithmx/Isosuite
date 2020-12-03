@@ -359,12 +359,6 @@ function get_atom_frac_pos(
 end # |> atom_list
 
 
-function has_wyck(cif)
-    cif_lines = (cif isa AbstractString) ? readlines(cif) : cif
-    findfirst(x->occursin("_atom_site_Wyckoff_label",x), cif_lines)!==nothing
-end
-
-
 function get_atom_frac_pos_with_wyckoff(
     cif
     )
