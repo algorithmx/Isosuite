@@ -9656,7 +9656,7 @@ end
 
 function has_wyck(cif)
     cif_lines = (cif isa AbstractString) ? readlines(cif) : cif
-    findfirst(x->occursin("_atom_site_Wyckoff_label",x), cif_lines)===nothing
+    findfirst(x->occursin("_atom_site_Wyckoff_label",x), cif_lines) !== nothing  #! IDIOT 
 end
 
 
