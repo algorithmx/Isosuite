@@ -89,6 +89,8 @@ function all_kvectors(
     setting="MILLER-LOVE",
     unitcell_setting=default_settings_iso
     )
+    # The coordinates are given in terms of
+    # the (conventional) reciprocal lattice vectors
     comms1= ["VALUE PARENT $parent",
              "LABEL VECTOR $(uppercase(primitive_or_conventional))",
              "SETTING $setting",]

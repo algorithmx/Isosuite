@@ -147,7 +147,17 @@ get_cell_params(cif) = get_number(  cif,
                                      "cell_angle_gamma",
                                     ],
                                     parser=(x->parse(Float64,x))  )
-                                                
+
+function compute_cell_volume(a,b,c,α_deg,β_deg,γ_deg)
+    (α,β,γ) = (π/180.0).*[α_deg,β_deg,γ_deg]
+    V = a*b*c*sqrt(1-cos(α)^2-cos(β)^2-cos(γ)^2+2*(cos(α)*cos(β)*cos(γ)))
+    if V<1e-5
+        @warn "compute_cell_volume() : \nWrong volume. Check your cif!"
+    end
+    return V
+end
+
+compute_cell_volume(cif) = compute_cell_volume(get_cell_params(cif)...)
 
 function atom_config_pos(
     cif
@@ -485,6 +495,7 @@ function minimal_cif_part1(
     _cell_angle_alpha                      aaa
     _cell_angle_beta                       bbb
     _cell_angle_gamma                      ggg
+    _cell_volume                           vvv
     _symmetry_Int_Tables_number            IIITTT\n"""
     #  U1     1.0     0.000000      0.000000      0.000000     U
     (AAA,BBB,CCC,alpha,beta,gamma) = latt_params[1:6]
@@ -493,6 +504,7 @@ function minimal_cif_part1(
     rules = [   "TITLE" => title,
                 "AAA"=>str8(AAA), "BBB"=>str8(BBB), "CCC"=>str8(CCC), 
                 "aaa"=>str8(alpha), "bbb"=>str8(beta), "ggg"=>str8(gamma),
+                "vvv"=>str8(compute_cell_volume(AAA,BBB,CCC,alpha,beta,gamma)),
                 "IIITTT"=>string(IT)  ]
     cif_str = __cif__
     for p in rules

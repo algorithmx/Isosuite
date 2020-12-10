@@ -133,7 +133,7 @@ function comsubs_output_subgroup_score(
     min_d  = parse_number(sg["Nearest-neighbor distance along path"])
     size1  = parse_number(sg["Crystal 1"]["Size"])
     size2  = parse_number(sg["Crystal 2"]["Size"])
-    #! arbitrary wcoring function ....
+    #! arbitrary scoring function ....
     score = score_func(stress,(size1,size2))
     return score
 end
@@ -280,7 +280,7 @@ function comsubs_output_low_score_subgroups_to_cif(
     return
 end
 
-
+#! used to be SPT_path()
 function comsubs_output_path_cifs(comsubs_res_fn; mid_points=[0.5,])
     closef(f1,f2) = abs(f1-f2)<1e-4
     res  = readlines(comsubs_res_fn)
@@ -288,17 +288,16 @@ function comsubs_output_path_cifs(comsubs_res_fn; mid_points=[0.5,])
     scores    = comsubs_output_subgroup_scores(subgroups)
     commsg    = [strip(sg["Common subgroup"]) for sg in subgroups]
     commsg_unique = unique(commsg)
-    commsg_minscore = [ sort(   [(sg,csg,sc)
-                                    for (sg,csg,sc) in zip(subgroups,commsg,scores) 
-                                        if csg==csg0], by = last   ) |> first
-                        for csg0 in commsg_unique ]
+    pick(x) = [(sg,csg,sc) for (sg,csg,sc) in zip(subgroups,commsg,scores) if csg==x]
+    commsg_minscore = [ first(sort(pick(csg0),by=last)) for csg0 in commsg_unique ]
+
     # for each representatives
     all_cifs = []
-    for (sg,csg,sc) in commsg_minscore
-        (c1,c2,cm) = comsubs_output_cryst_to_cif(sg)
-        cifs = [(cm, 0.5), ]
+    for (sg, csg, sc) in commsg_minscore
+        (c1,  c2, cm) = comsubs_output_cryst_to_cif(sg)
+        cifs = [(c1,0.0), (cm,0.5), (c2,1.0)]
         for λk in mid_points
-            if closef(λk,1//2)
+            if closef(λk,1//2) || closef(λk,0) || closef(λk,1)
                 nothing
             elseif λk>1//2+5e-5
                 cx = interpolate_cif(SPLTN(cm), SPLTN(c2), λ=2*(λk-1//2))

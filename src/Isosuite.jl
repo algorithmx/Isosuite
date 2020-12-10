@@ -1,3 +1,23 @@
+#=
+WARNING: using Isosuite.get_String in module Main conflicts with an existing identifier.
+WARNING: using Isosuite.get_symmetry_Int_Tables_number in module Main conflicts with an existing identifier.
+WARNING: using Isosuite.get_title_line in module Main conflicts with an existing identifier.
+WARNING: using Isosuite.extract_all_kw in module Main conflicts with an existing identifier.
+WARNING: using Isosuite.get_cell_length_c in module Main conflicts with an existing identifier.
+WARNING: using Isosuite.get_cell_angle_gamma in module Main conflicts with an existing identifier.
+WARNING: using Isosuite.get_cell_angle_alpha in module Main conflicts with an existing identifier.
+WARNING: using Isosuite.set_line_kw! in module Main conflicts with an existing identifier.
+WARNING: using Isosuite.get_cell_length_a in module Main conflicts with an existing identifier.
+WARNING: using Isosuite.loop_sections in module Main conflicts with an existing identifier.
+WARNING: using Isosuite.get_cell_angle_beta in module Main conflicts with an existing identifier.
+WARNING: using Isosuite.extract_kw in module Main conflicts with an existing identifier.
+WARNING: using Isosuite.get_cell_params in module Main conflicts with an existing identifier.
+WARNING: using Isosuite.extract_atom_config in module Main conflicts with an existing identifier.
+WARNING: using Isosuite.compute_cell_volume in module Main conflicts with an existing identifier.
+WARNING: using Isosuite.set_cif_title! in module Main conflicts with an existing identifier.
+WARNING: using Isosuite.get_cell_length_b in module Main conflicts with an existing identifier.
+=#
+
 #ENV["ISOSUITE_FOLDER"] = "/home/dabajabaza/abinitio/iso/" ##!! modify this line first!!!
 
 ## --------------------------------------------
@@ -34,6 +54,7 @@ module Isosuite
     export supercell, symmetry_operators, loop_sections
     export set_cif_title!, set_line_kw!
     export get_atom_frac_pos_with_wyckoff, has_wyck
+    export compute_cell_volume
 
     export iso, irrep_matrix, irrep_names, all_kvectors, all_elements
 
