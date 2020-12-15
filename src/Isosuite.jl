@@ -70,7 +70,7 @@ module Isosuite
     export comsubs_output_issubgroup, comsubs_output_isfinished, comsubs_output_info
     export comsubs_output_subgroup_score, comsubs_output_subgroup_scores, comsubs_output_min_score
     export comsubs_output_low_score_subgroups_to_cif, comsubs_output_cryst_to_cif
-    export comsubs_output_path_cifs
+    export comsubs_output_path_cifs, comsubs_output_ALL_path_cifs
 
     export QE_default_equivalent_settings_findsym, default_settings_findsym
     export QE_default_equivalent_settings_iso, default_settings_iso

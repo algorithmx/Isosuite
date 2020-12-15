@@ -280,6 +280,7 @@ function comsubs_output_low_score_subgroups_to_cif(
     return
 end
 
+
 #! used to be SPT_path()
 function comsubs_output_path_cifs(comsubs_res_fn; mid_points=[0.5,])
     closef(f1,f2) = abs(f1-f2)<1e-4
@@ -308,6 +309,39 @@ function comsubs_output_path_cifs(comsubs_res_fn; mid_points=[0.5,])
             end
         end
         push!(all_cifs, (csg, cifs))
+    end
+    return all_cifs
+end
+
+
+function comsubs_output_ALL_path_cifs(comsubs_res_fn; mid_points=[0.5,])
+    closef(f1,f2) = abs(f1-f2)<1e-4
+    res  = readlines(comsubs_res_fn)
+    subgroups = comsubs_output_subgroups(res)
+    commsg    = [strip(sg["Common subgroup"]) for sg in subgroups]
+    # for each subgroup
+    all_cifs = []
+    i = 1
+    for (sg, csg) in zip(subgroups,commsg)
+        (c1, c2, cm) = comsubs_output_cryst_to_cif(sg)
+        cifs = []
+        for λk in mid_points
+            if closef(λk,1//2)
+                push!(cifs, (cm,0.5))
+            elseif closef(λk,0)
+                push!(cifs, (c1,0.0))
+            elseif closef(λk,1)
+                push!(cifs, (c2,1.0))
+            elseif λk>1//2+5e-5
+                cx = interpolate_cif(SPLTN(cm), SPLTN(c2), λ=2*(λk-1//2))
+                push!(cifs, (cx,λk))
+            else
+                cx = interpolate_cif(SPLTN(c1), SPLTN(cm), λ=2*(λk-0//2))
+                push!(cifs, (cx,λk))
+            end
+        end
+        push!(all_cifs, (i, csg, cifs))
+        i += 1
     end
     return all_cifs
 end
