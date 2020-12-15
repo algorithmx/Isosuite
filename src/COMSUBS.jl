@@ -234,17 +234,17 @@ function comsubs_output_cryst_to_cif(dic::Dict)
     strip_brackets(s) = strip(s, ['(',')'])
     OPS = strip_brackets.(get_Wyckoff_ops_for_general_xyz_std_setting(SG))
 
-    cif1 = cif_with_symmetry_ops(   "[COMSUBS output] Subgroup $ID Crystal 1", 
+    cif1 = cif_with_symmetry_ops(   "COMSUBS_Subgroup_$(ID)_Crystal_1", 
                                     Tuple((parse_6f(dic["Crystal 1"]["Lattice parameters"])..., SG)), 
                                     comsubs_output_wyckoff_to_atomlist(dic["Crystal 1"]["Wyckoff"], SG),
                                     OPS    )
 
-    cif2 = cif_with_symmetry_ops(   "[COMSUBS output] Subgroup $ID Crystal 2", 
+    cif2 = cif_with_symmetry_ops(   "COMSUBS_Subgroup_$(ID)_Crystal_2", 
                                     Tuple((parse_6f(dic["Crystal 2"]["Lattice parameters"])..., SG)), 
                                     comsubs_output_wyckoff_to_atomlist(dic["Crystal 2"]["Wyckoff"], SG),
                                     OPS    )
 
-    cifm = cif_with_symmetry_ops(   "[COMSUBS output] Subgroup $ID Crystal m", 
+    cifm = cif_with_symmetry_ops(   "COMSUBS_Subgroup_$(ID)_Crystal_m", 
                                     Tuple((parse_6f(dic["Crystal m"]["Lattice parameters"])..., SG)), 
                                     comsubs_output_wyckoff_to_atomlist(dic["Crystal m"]["Wyckoff"], SG),
                                     OPS    )

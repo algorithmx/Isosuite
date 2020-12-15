@@ -596,9 +596,16 @@ function interpolate_cif(cif1, cif2; λ=0.5)
     sec2 = loop_sections(cif2)
     @assert length(sec1)==length(sec2)==3
     @assert all(sec1[2].==sec2[2])
+
+    common_substring(A,B) = A[1:findlast(x->A[x]==B[x],1:min(length(A),length(B)))]
+    diff_substring(A,B) = ( A[1+findlast(x->A[x]==B[x],1:min(length(A),length(B))):end],
+                            B[1+findlast(x->A[x]==B[x],1:min(length(A),length(B))):end] )
+    
     title1 = get_title_line(sec1[1])
     title2 = get_title_line(sec2[1])
-    title_n = ("$(round(1-λ,digits=4)) x (" * title1 * ") + $(round(λ,digits=4)) x (" * title2 * ")")
+    head12 = common_substring(title1,title2)
+    tail1,tail2 = diff_substring(title1,title2)
+    title_n = ( head12 * ("$(round(1-λ,digits=4))($tail1)+$(round(λ,digits=4))x($tail2)") )
 
     params = map(   x->((1-λ)*x[1]+λ*x[2]), 
                     zip(get_cell_params(sec1[1]),get_cell_params(sec2[1]))  )
