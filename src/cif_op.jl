@@ -372,6 +372,7 @@ end # |> atom_list
 function get_atom_frac_pos_with_wyckoff(
     cif
     )
+    #!FIXME cell convention 
     @assert has_wyck(cif)
     IT = get_symmetry_Int_Tables_number(cif)
     # section _atom_site_ from cif
@@ -573,7 +574,7 @@ function cif_with_symmetry_ops(
     title,
     latt_params::Tuple,
     atom_wyck_frac_positions::Vector,
-    symm_ops::Union{Vector,Tuple},
+    symm_ops::Union{Vector,Tuple}
     )
     part3 = """loop_
     _atom_site_label
@@ -632,7 +633,6 @@ function interpolate_cif(cif1, cif2; λ=0.5)
 end
 
 ## ---------------------------------------------------------
-
 
 function supercell(
     cif,

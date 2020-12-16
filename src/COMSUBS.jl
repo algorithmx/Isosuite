@@ -228,7 +228,9 @@ function comsubs_output_wyckoff_to_atomlist(wyckoff, SG::Int)
 end
 
 
-function comsubs_output_cryst_to_cif(dic::Dict)
+function comsubs_output_cryst_to_cif(
+    dic::Dict
+    )
     ID  = dic["Subgroup"]
     SG  = parse_number( SPLTS(dic["Common subgroup"])[1] )
     strip_brackets(s) = strip(s, ['(',')'])
