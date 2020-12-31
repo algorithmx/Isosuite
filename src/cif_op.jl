@@ -666,3 +666,11 @@ end
 
 
 ## ------------------------------------------------------------------
+
+function basis_to_lattice_parameters(basis)
+    (a,b,c) = (norm(basis[1]), norm(basis[2]), norm(basis[3]))
+    d(x,y) = 180acos(dot(normalize(basis[x]),normalize(basis[y])))/π
+    (ang_bc, ang_ac, ang_ab) = (d(2,3), d(1,3), d(1,2))
+    return (a,b,c, ang_bc, ang_ac, ang_ab)
+end
+

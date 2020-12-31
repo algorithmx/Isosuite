@@ -36,7 +36,7 @@ module Isosuite
     trslsh(l) = rstrip(l,['/'])
     adslsh(l) = trslsh(l)*"/"
 
-    export SPLTX, SPLTN, SPLTS, SPLTS1, SPLTC, SPLTEQ, SPLTA, SPLTD, STRPRM
+    export SPLTX, SPLTN, SPLTS, SPLTS1, SPLTC, SPLTEQ, SPLTA, SPLTD, STRPRM, SPLTFORT, SPLTFORT1
     export trim_comments_pound, decif, write_to_file, ⇶, ⦿
     
     export minimal_cif
@@ -82,6 +82,8 @@ module Isosuite
     export Wyckoff_params
 
     export parse_number, parse_3_float64
+    
+    export basis_to_lattice_parameters
 
     include("SG_settings.jl")
 
