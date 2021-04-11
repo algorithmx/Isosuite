@@ -2,7 +2,9 @@
 /paper
 /src/__pycache__
 *.cif
+*.vasp
 *.log
 *.dat
 *.a
 *.o
+*.code-workspace
