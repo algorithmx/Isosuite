@@ -592,44 +592,47 @@ end
 
 ## ---------------------------------------------------------
 
-function interpolate_cif(cif1, cif2; λ=0.5)
+function interpolate_cif(cif1, cif2; Λ=[0.5,])
     sec1 = loop_sections(cif1)
     sec2 = loop_sections(cif2)
-    @assert length(sec1)==length(sec2)==3
-    @assert all(sec1[2].==sec2[2])
-
-    common_substring(A,B) = A[1:findlast(x->A[x]==B[x],1:min(length(A),length(B)))]
-    diff_substring(A,B) = ( A[1+findlast(x->A[x]==B[x],1:min(length(A),length(B))):end],
-                            B[1+findlast(x->A[x]==B[x],1:min(length(A),length(B))):end] )
-    
     title1 = get_title_line(sec1[1])
     title2 = get_title_line(sec2[1])
     head12 = common_substring(title1,title2)
     tail1,tail2 = diff_substring(title1,title2)
-    title_n = ( head12 * ("$(round(1-λ,digits=4))($tail1)+$(round(λ,digits=4))x($tail2)") )
-
-    params = map(   x->((1-λ)*x[1]+λ*x[2]), 
-                    zip(get_cell_params(sec1[1]),get_cell_params(sec2[1]))  )
-
     IT1 = get_symmetry_Int_Tables_number(sec1[1])
-    IT2 = get_symmetry_Int_Tables_number(sec2[1])
+    IT2 = get_symmetry_Int_Tables_number(sec2[1])    
+    cellparam1 = get_cell_params(sec1[1])
+    cellparam2 = get_cell_params(sec2[1])
+    @assert length(sec1)==length(sec2)==3
+    @assert all(sec1[2].==sec2[2])
     @assert IT1==IT2
-
-    latt_params = Tuple((params..., IT1))
-
+    # functions
+    @inline rd(λ) = round(λ,digits=4)
+    @inline common_substring(A,B) = A[1:findlast(x->A[x]==B[x],1:min(length(A),length(B)))]
+    @inline diff_substring(A,B) = ( A[1+findlast(x->A[x]==B[x],1:min(length(A),length(B))):end],
+                                    B[1+findlast(x->A[x]==B[x],1:min(length(A),length(B))):end] )
     function avg456(l1,l2,λ0)
-        if l1==l2
-            return l1
-        end
-        p1 = SPLTS(l1)
-        p2 = SPLTS(l2)
+        if l1==l2   return l1   end
+        (p1,p2) = (SPLTS(l1),SPLTS(l2))
         n  = ((1-λ0).*parse_number.(p1[4:6])  .+  λ0.*parse_number.(p2[4:6]))
         return (@sprintf  "%s  %s  %s  %12.8f  %12.8f  %12.8f  1.00000" p1[1] p1[2] p1[3] n[1] n[2] n[3])
     end
-    sec_avg_3 = map(x->avg456(x[1],x[2],λ), zip(sec1[3],sec2[3]))
-    return  (   minimal_cif_part1(title_n,latt_params) 
-            * ⦿(sec1[2]) * "\n"
-            * ⦿(sec_avg_3)   )
+    # interpolate
+    result_cifs = []
+    for λ ∈ Λ
+        title_n = ( head12*("$(rd(1-λ))($tail1)+$(rd(λ))($tail2)") )
+        # params
+        params = map(x->((1-λ)*x[1]+λ*x[2]), zip(cellparam1,cellparam2))
+        latt_params = Tuple((params..., IT1))
+        # section 3
+        sec_avg_3 = map(x->avg456(x[1],x[2],λ), zip(sec1[3],sec2[3]))
+        push!(result_cifs, 
+                (minimal_cif_part1(title_n,latt_params) 
+               * ⦿(sec1[2]) * "\n"
+               * ⦿(sec_avg_3) ))
+    end
+    # return
+    return result_cifs
 end
 
 ## ---------------------------------------------------------
